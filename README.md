@@ -1,6 +1,6 @@
 # 60-Day Claude Challenge
 
-Hi, I'm Prateek Kumar Singh, nickname RIKKI, an Engineering student exploring Data Analytics, Generative AI, and creative problem-solving.
+Hi, I'm Prateek Kumar Singh (Rikki), an Engineering student exploring Data Analytics, Generative AI, and creative problem-solving.
 
 ## Goals
 - Learn AI tools effectively
