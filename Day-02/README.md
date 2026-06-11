@@ -62,7 +62,5 @@ An engineered prompt becomes more valuable when:
 Prompt Engineering is not about making prompts longer.
 It is about providing the right amount of context for the task you want to accomplish.
 Simple prompts are useful for exploration and quick learning.
-
 Engineered prompts are useful when precision, personalization, structure, and quality matter.
-
 The real skill is knowing when to use each approach.
