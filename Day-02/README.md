@@ -13,7 +13,7 @@ The result was a clean visual explanation that helped me quickly understand the 
 
 ### Output
 
-![Simple Prompt Output](simple-prompt-output.png)
+![Simple Prompt Output](Simple_Prompt.png)
 
 ---
 
@@ -35,7 +35,7 @@ The result was significantly more detailed and tailored.
 
 ### Output
 
-![Engineered Prompt Output](engineered-prompt-output.png)
+![Engineered Prompt Output](Engineered_Prompt.png)
 
 ---
 
