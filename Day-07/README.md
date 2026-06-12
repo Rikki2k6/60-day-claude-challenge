@@ -12,6 +12,9 @@ I used the Claude Usage Strategy prompt and answered a few questions about my wo
 
 ### Questions & Answers
 
+![Question and Answers](Screenshot(90).png)
+
+
 **Current Situation:** Student
 
 **Primary Activities:**
@@ -36,6 +39,8 @@ I used the Claude Usage Strategy prompt and answered a few questions about my wo
 
 ## Personalized Strategy
 
+![Recommended Model](Screenshot(91).png)
+
 Claude recommended:
 
 ### Primary Model
@@ -54,6 +59,8 @@ Claude recommended:
 ---
 
 ## Workflow Recommendations
+
+![Workflow Recommendations](Screenshot(92).png)
 
 | Task                   | Recommended Setup |
 | ---------------------- | ----------------- |
