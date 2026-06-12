@@ -28,7 +28,7 @@ Instead of generating a roadmap immediately, Claude first asked questions about 
 
 ## Generated Roadmap
 
-![Career Roadmap](career_roadmap_page-001.jpg)
+![Career Roadmap](career_roadmap_page-0001.jpg)
 
 ---
 
