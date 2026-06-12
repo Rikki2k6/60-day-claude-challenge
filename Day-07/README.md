@@ -60,7 +60,7 @@ Claude recommended:
 
 ## Workflow Recommendations
 
-![Workflow Recommendations](Screenshot(92).png)
+![Workflow Recommendations](Screenshot%20(92).png)
 
 | Task                   | Recommended Setup |
 | ---------------------- | ----------------- |
