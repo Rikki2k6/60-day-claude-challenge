@@ -12,7 +12,7 @@ I used the Claude Usage Strategy prompt and answered a few questions about my wo
 
 ### Questions & Answers
 
-![Question and Answers](Screenshot(90).png)
+![Question and Answers](Screenshot%20(90).png)
 
 
 **Current Situation:** Student
@@ -39,7 +39,7 @@ I used the Claude Usage Strategy prompt and answered a few questions about my wo
 
 ## Personalized Strategy
 
-![Recommended Model](Screenshot(91).png)
+![Recommended Model](Screenshot%20(91).png)
 
 Claude recommended:
 
