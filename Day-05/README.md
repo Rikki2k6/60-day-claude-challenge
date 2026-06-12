@@ -25,7 +25,7 @@ Make it practical and beginner-friendly.
 
 ### Output
 
-![Prompt A Output](prompt_a_output.png)
+![Prompt A Output](Prompt_a_output.png)
 
 ### Observation
 
@@ -60,7 +60,7 @@ Make it practical and beginner-friendly.
 
 ### Output
 
-![Prompt B Output](prompt_b_output.png)
+![Prompt B Output](Prompt_b_output.png)
 
 ### Observation
 
