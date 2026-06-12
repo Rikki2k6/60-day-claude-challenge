@@ -4,6 +4,7 @@
 
 Learn how Chain-of-Thought Prompting improves AI responses by collecting information and reasoning before generating an answer.
 
+![Chain of Thought Prompting](chain_of_thought_prompting_infographic_v2.png) 
 ---
 
 ## My Experiment
@@ -12,11 +13,9 @@ I used Claude's Career Roadmap Builder.
 
 Instead of generating a roadmap immediately, Claude first asked questions about my current situation, skills, goals, and timeline before creating a personalized roadmap.
 
-### Questions Asked By Claude
+![Experiment](Chain-of-thoughts.png)
 
-![Questions Asked](questions.png)
-
-### My Answers
+### Ouestions asked by Claude and My Answers
 
 | Question          | Answer                                   |
 | ----------------- | ---------------------------------------- |
@@ -29,7 +28,7 @@ Instead of generating a roadmap immediately, Claude first asked questions about 
 
 ## Generated Roadmap
 
-![Career Roadmap](career-roadmap.png)
+![Career Roadmap](career_roadmap_page-001.jpg)
 
 ---
 
