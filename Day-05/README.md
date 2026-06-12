@@ -60,7 +60,7 @@ Make it practical and beginner-friendly.
 
 ### Output
 
-![Prompt B Output](Prompt_b_output.png)
+![Prompt B Output](Prompt_b_output.jpg)
 
 ### Observation
 
