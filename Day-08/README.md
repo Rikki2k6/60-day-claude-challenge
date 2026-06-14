@@ -26,9 +26,9 @@ Use Claude to generate an Environmental Health Analyzer dashboard and test the r
 
 ### Screenshots
 
-![Dashboard Overview](Screenshot(96).png)
+![Dashboard Overview](Screenshot%20(96).png)
 
-![City Cards](Screenshot(95).png)
+![City Cards](Screenshot%20(95).png)
 
 ---
 
