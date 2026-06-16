@@ -30,7 +30,7 @@ For this task, I generated two versions:
 
 ### MVP Version (Prompt 1)
 
-![MVP Dashboard](1st-Prompt.png)
+![MVP Dashboard](!st-Prompt.png)
 
 ### Enhanced Version (Prompt 2)
 
