@@ -86,17 +86,3 @@ The biggest advantage of Claude Skills is that once the skill is created, it can
 ## Outcome
 
 Successfully created and tested a reusable Claude Custom Skill for stock fundamental research and generated a comprehensive TCS analysis report. The exercise demonstrated how Claude Skills can automate complex financial research workflows and significantly improve productivity.
-
----
-
-### Repository Structure
-
-Day16/
-├── README.md
-├── screenshots/
-│   ├── skill-created.png
-│   ├── tcs-report-cover.png
-│   ├── company-overview.png
-│   ├── growth-analysis.png
-│   ├── key-metrics.png
-│   └── final-report.png
