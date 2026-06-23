@@ -113,16 +113,13 @@ Generated a complete HTML dashboard featuring:
 ## Screenshots
 
 ### Dashboard Overview
-![Dashboard Overview](screenshots/dashboard-overview.png)
+![Dashboard Overview](Screenshot%20(184).png)
 
 ### Fuel Cost & Emissions Analysis
-![Fuel Cost Analysis](screenshots/fuel-cost-analysis.png)
-
-### E85 Score & Vehicle Age Analysis
-![E85 Analysis](screenshots/e85-analysis.png)
+![Fuel Cost Analysis](Screenshot%20(183).png)
 
 ### Fuel Comparison & Recommendations
-![Fuel Comparison](screenshots/fuel-comparison.png)
+![Fuel Comparison](Screenshot%20(182).png)
 
 ---
 
