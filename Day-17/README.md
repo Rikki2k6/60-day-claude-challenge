@@ -133,23 +133,6 @@ Generated a complete HTML dashboard featuring:
 
 ---
 
-## Files Included
-
-```
-Day17/
-│
-├── README.md
-├── e85_dashboard.html
-│
-└── screenshots/
-    ├── dashboard-overview.png
-    ├── fuel-cost-analysis.png
-    ├── e85-analysis.png
-    └── fuel-comparison.png
-```
-
----
-
 ## Outcome
 
 Successfully generated and deployed an interactive Vehicle Cost Analysis Dashboard using Claude. The dashboard provided comprehensive insights into fuel economics, environmental impact, maintenance costs, and E85 feasibility for a 12-year-old Swift Dzire, demonstrating practical applications of data analytics and visualization in real-world decision-making.
