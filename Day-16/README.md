@@ -72,7 +72,7 @@ The biggest advantage of Claude Skills is that once the skill is created, it can
 
 ---
 
-## Screenshots Included
+## Report Included
 - Custom Skill Creation Page
 - Skill Configuration
 - TCS Research Report Cover Page
