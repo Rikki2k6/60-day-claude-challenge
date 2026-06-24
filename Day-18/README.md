@@ -129,19 +129,19 @@ The dashboard highlighted that consistent daily action will have a much larger i
 
 ### Dashboard Cover Page
 
-![Dashboard Cover](screenshots/Screenshot%20%28188%29.png)
+![Dashboard Cover](Screenshot%20(185).png)
 
 ### Root Cause Analysis
 
-![Root Cause Analysis](screenshots/Screenshot%20%28187%29.png)
+![Root Cause Analysis](Screenshot%20(186).png)
 
 ### Priority Matrix
 
-![Priority Matrix](screenshots/Screenshot%20%28186%29.png)
+![Priority Matrix](Screenshot%20(187).png)
 
 ### Open Questions & Decision Areas
 
-![Open Questions](screenshots/Screenshot%20%28185%29.png)
+![Open Questions](Screenshot%20(188).png)
 
 ---
 
