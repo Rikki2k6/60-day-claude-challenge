@@ -104,19 +104,19 @@ The dashboard recommended several actions:
 
 ### Dashboard Overview
 
-![Overview](screenshots/Screenshot%20%28213%29.png)
+![Overview](Screenshot%20(213).png)
 
 ### Exposure Heatmap
 
-![Exposure Heatmap](screenshots/Screenshot%20%28214%29.png)
+![Exposure Heatmap](Screenshot%20(214).png)
 
 ### Company Exposure Ranking
 
-![Company Ranking](screenshots/Screenshot%20%28215%29.png)
+![Company Ranking](Screenshot%20(215).png)
 
 ### Privacy Improvement Plan
 
-![Improvement Plan](screenshots/Screenshot%20%28216%29.png)
+![Improvement Plan](Screenshot%20(216).png)
 
 ---
 
