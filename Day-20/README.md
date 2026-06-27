@@ -61,23 +61,7 @@ During this challenge, I:
 
 ### Puzzle Completion Screen
 
-![Puzzle Solved](screenshots/Screenshot%20%28203%29.png)
-
-> *(Add additional gameplay screenshots here if available.)*
-
----
-
-## Project Structure
-
-```text
-Day20/
-├── face-puzzle.html
-├── day20.md
-└── screenshots/
-    ├── Screenshot (203).png
-    ├── Screenshot (204).png
-    └── Screenshot (205).png
-```
+![Puzzle Solved](Screenshot%20(203).png)
 
 ---
 
