@@ -120,21 +120,6 @@ The dashboard recommended several actions:
 
 ---
 
-## Project Structure
-
-```text
-Day21/
-├── digital_privacy_dashboard.html
-├── day21.md
-└── screenshots/
-    ├── Screenshot (213).png
-    ├── Screenshot (214).png
-    ├── Screenshot (215).png
-    └── Screenshot (216).png
-```
-
----
-
 ## Conclusion
 
 Day 21 demonstrated how Claude can generate an interactive privacy analysis dashboard from a structured dataset. The Digital Privacy Dashboard effectively visualized digital exposure, company data access, privacy risks, and actionable recommendations. This exercise reinforced concepts related to data privacy, digital footprints, risk assessment, and dashboard development while showcasing AI-assisted web application generation.
