@@ -85,31 +85,22 @@ An AI-powered platform that converts career goals into structured execution plan
 ## 📸 Screenshots
 
 ### Startup Validation Report
-![Startup Validation Report](./screenshots/startup-report-cover.png)
+![Startup Validation Report](Sreenshots%20(223).png)
 
 ### Table of Contents
-![Table of Contents](./screenshots/table-of-contents.png)
+![Table of Contents](Sreenshots%20(224).png)
 
 ### Founder-Market Fit Analysis
-![Founder Market Fit](./screenshots/founder-market-fit.png)
+![Founder Market Fit](Sreenshots%20(225).png)
 
 ### Customer Pain Points
-![Customer Pain Points](./screenshots/customer-pain-points.png)
+![Customer Pain Points](Sreenshots%20(226).png)
 
 ### Buying Triggers & Objections
-![Buying Triggers](./screenshots/buying-triggers.png)
+![Buying Triggers](Sreenshots%20(227).png)
 
 ### 30-Day Validation Plan
-![30-Day Action Plan](./screenshots/action-plan.png)
-
----
-
-## 📂 Files Included
-
-- `startup_validation_report.pdf`
-- `startup_validation_report.html` *(if generated)*
-- Screenshots
-- `README.md`
+![30-Day Action Plan](Sreenshots%20(228).png)
 
 ---
 
