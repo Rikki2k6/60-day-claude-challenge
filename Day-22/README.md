@@ -85,7 +85,7 @@ An AI-powered platform that converts career goals into structured execution plan
 ## 📸 Screenshots
 
 ### Startup Validation Report
-![Startup Validation Report](Sreenshot%20(223).png)
+![Startup Validation Report](Screenshot%20(223).png)
 
 ### Table of Contents
 ![Table of Contents](Sreenshot%20(224).png)
