@@ -88,19 +88,19 @@ An AI-powered platform that converts career goals into structured execution plan
 ![Startup Validation Report](Screenshot%20(223).png)
 
 ### Table of Contents
-![Table of Contents](Sreenshot%20(224).png)
+![Table of Contents](Screenshot%20(224).png)
 
 ### Founder-Market Fit Analysis
-![Founder Market Fit](Sreenshot%20(225).png)
+![Founder Market Fit](Screenshot%20(225).png)
 
 ### Customer Pain Points
-![Customer Pain Points](Sreenshot%20(226).png)
+![Customer Pain Points](Screenshot%20(226).png)
 
 ### Buying Triggers & Objections
-![Buying Triggers](Sreenshot%20(227).png)
+![Buying Triggers](Screenshot%20(227).png)
 
 ### 30-Day Validation Plan
-![30-Day Action Plan](Sreenshot%20(228).png)
+![30-Day Action Plan](Screenshot%20(228).png)
 
 ---
 
