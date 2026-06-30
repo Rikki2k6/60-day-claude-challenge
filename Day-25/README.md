@@ -105,18 +105,6 @@ The simulation returned a placeholder verdict because the judging model connecti
 
 ---
 
-## 📸 Screenshots
-
-### Startup Pitch Form
-
-> *(Insert Screenshot 244 here)*
-
-### Final Verdict Screen
-
-> *(Insert Screenshot 245 here)*
-
----
-
 ## 📂 Files Included
 
 - `ai-shark-tank-simulator.html`
