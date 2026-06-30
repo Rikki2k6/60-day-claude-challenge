@@ -135,8 +135,3 @@ Building an MVP is only the beginning. A startup becomes investable when custome
 This project helped me think beyond product development and evaluate the startup from a business perspective. I learned how to analyze sustainability, assess market viability, identify risks, plan customer acquisition, and create a structured roadmap for validating a startup before investing significant development time. The report concluded with a **"VALIDATE"** verdict, highlighting that the idea shows promise but requires real customer interviews, pricing validation, and early traction before it can be considered investable. :contentReference[oaicite:1]{index=1}
 
 ---
-
-### 🔗 Repository
-
-**60 Days Claude Challenge**
-```
