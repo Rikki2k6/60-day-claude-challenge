@@ -12,7 +12,7 @@ The application was generated as a single HTML file using HTML, Tailwind CSS, an
 
 ## Final Application
 
-![Prior Authorization Story Simulator](Screenshot%20(243).png)
+![Prior Authorization Story Simulator](Screenshot%20(253).png)
 
 The simulator includes:
 
@@ -147,7 +147,7 @@ This prevents the user from being overwhelmed by a complex healthcare workflow.
 ## Files
 
 - `prior_authorization_story_simulator.html` — Complete interactive story application
-- `Screenshot (243).png` — Final scene and takeaways screenshot
+- `Screenshot (253).png` — Final scene and takeaways screenshot
 
 ---
 
