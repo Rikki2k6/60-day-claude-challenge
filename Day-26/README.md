@@ -12,7 +12,7 @@ The simulator was generated as a single HTML application using HTML, CSS, and va
 
 ## Final Application
 
-![Prior Authorization Workflow Simulator](Screenshot%20(252).png)
+![Prior Authorization Workflow Simulator](Screenshot%20(242).png)
 
 The simulator includes:
 
@@ -122,14 +122,6 @@ Claude generated a substantial working structure, but the interaction issue requ
 - Modal-based decisions
 - Canvas confetti animation
 - Responsive CSS layout
-
----
-
-## Files
-
-- `pa_simulator.html` — Original generated application
-- `pa_simulator_fixed.html` — Improved interactive version with click/tap fallbacks
-- `Screenshot (252).png` — Workflow simulator screenshot
 
 ---
 
