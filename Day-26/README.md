@@ -12,7 +12,7 @@ The simulator was generated as a single HTML application using HTML, CSS, and va
 
 ## Final Application
 
-![Prior Authorization Workflow Simulator](Screenshot%20(242).png)
+![Prior Authorization Workflow Simulator](Screenshot%20(252).png)
 
 The simulator includes:
 
