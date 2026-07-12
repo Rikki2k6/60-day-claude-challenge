@@ -68,7 +68,7 @@ Instead of rewriting the same instruction again and again, a strong prompt can b
 ## Files
 
 - `prompt-puzzle-datascience-beginner.html` — Complete Prompt Puzzle application
-- `image(46).png` — Final performance report screenshot
+- `Screenhot (270).png` — Final performance report screenshot
 
 ---
 
