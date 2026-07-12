@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧩 Prompt Puzzle — Master AI Prompting Through Play</title>
+<style>
+  :root{
+    --bg-0:#0b0e14;
+    --bg-1:#12161f;
+    --bg-2:#1a1f2b;
+    --card:#161b26;
+    --border:#262d3d;
+    --accent:#6ee7b7;
+    --accent-2:#60a5fa;
+    --accent-3:#f472b6;
+    --warn:#fbbf24;
+    --danger:#f87171;
+    --text-0:#e8ecf3;
+    --text-1:#a6adc0;
+    --text-2:#6b7385;
+    --radius:14px;
+    --shadow: 0 8px 30px rgba(0,0,0,.45);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 20% -10%, rgba(96,165,250,.12), transparent 40%),
+      radial-gradient(circle at 90% 10%, rgba(244,114,182,.10), transparent 40%),
+      var(--bg-0);
+    color:var(--text-0);
+    min-height:100vh;
+    padding:24px;
+  }
+  .app{max-width:1100px;margin:0 auto;}
+  .header{
+    text-align:center;
+    margin-bottom:28px;
+  }
+  .header h1{
+    font-size:2rem;
+    margin:0 0 6px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    letter-spacing:-.5px;
+  }
+  .header p{color:var(--text-1);margin:0;font-size:.95rem;}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:24px;
+    box-shadow:var(--shadow);
+  }
+
+  /* Intake */
+  .intake-grid{display:grid;gap:14px;margin-top:20px;}
+  .option-btn{
+    background:var(--bg-2);
+    border:1px solid var(--border);
+    color:var(--text-0);
+    padding:14px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    text-align:left;
+    font-size:.95rem;
+    transition:.18s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .option-btn:hover{border-color:var(--accent-2);transform:translateY(-2px);box-shadow:0 6px 18px rgba(96,165,250,.15);}
+  .option-btn.selected{border-color:var(--accent);background:rgba(110,231,183,.08);}
+  .option-btn.selected::after{content:'✓';position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--accent);font-weight:700;}
+
+  .btn{
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    color:#0b0e14;
+    border:none;
+    padding:12px 24px;
+    border-radius:10px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:.95rem;
+    transition:.15s ease;
+  }
+  .btn:hover{filter:brightness(1.08);transform:translateY(-1px);}
+  .btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+  .btn-secondary{
+    background:var(--bg-2);
+    color:var(--text-0);
+    border:1px solid var(--border);
+  }
+  .btn-secondary:hover{border-color:var(--accent-2);}
+  .btn-row{display:flex;gap:12px;margin-top:22px;justify-content:flex-end;}
+
+  /* Top bar during game */
+  .topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .stat-pill{
+    background:var(--bg-2);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:6px 14px;
+    font-size:.8rem;
+    color:var(--text-1);
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .stat-pill b{color:var(--text-0);}
+  .stats-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .progress-track{
+    height:6px;
+    background:var(--bg-2);
+    border-radius:3px;
+    overflow:hidden;
+    margin:10px 0 20px;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    transition:width .4s ease;
+  }
+
+  .scenario-title{font-size:1.15rem;font-weight:700;margin:0 0 4px;}
+  .scenario-sub{color:var(--text-1);font-size:.85rem;margin:0 0 4px;}
+  .challenge-badge{
+    display:inline-block;
+    background:rgba(96,165,250,.15);
+    color:var(--accent-2);
+    border:1px solid rgba(96,165,250,.35);
+    padding:3px 10px;
+    border-radius:20px;
+    font-size:.72rem;
+    font-weight:700;
+    letter-spacing:.4px;
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  .desired-box{
+    background:var(--bg-2);
+    border:1px solid var(--border);
+    border-left:3px solid var(--accent-2);
+    padding:12px 16px;
+    border-radius:8px;
+    font-size:.88rem;
+    color:var(--text-1);
+    margin:12px 0 18px;
+  }
+  .desired-box b{color:var(--text-0);}
+
+  /* Build the prompt: bank + slots */
+  .zone-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.6px;color:var(--text-2);margin:18px 0 8px;font-weight:700;}
+  .bank{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    padding:14px;
+    background:var(--bg-1);
+    border:1px dashed var(--border);
+    border-radius:10px;
+    min-height:60px;
+  }
+  .slots{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    padding:14px;
+    background:var(--bg-1);
+    border:1px dashed var(--border);
+    border-radius:10px;
+    min-height:70px;
+  }
+  .slots.drag-over, .bank.drag-over{border-color:var(--accent);background:rgba(110,231,183,.05);}
+  .block{
+    background:var(--bg-2);
+    border:1px solid var(--border);
+    padding:10px 14px;
+    border-radius:8px;
+    cursor:grab;
+    font-size:.85rem;
+    user-select:none;
+    transition:.15s ease;
+    max-width:100%;
+  }
+  .block:hover{border-color:var(--accent-2);transform:translateY(-1px);}
+  .block.dragging{opacity:.4;}
+  .block.correct-flash{animation:flashGreen .6s ease;}
+  .block.wrong-flash{animation:flashRed .6s ease;}
+  @keyframes flashGreen{0%{background:rgba(110,231,183,.35);}100%{background:var(--bg-2);}}
+  @keyframes flashRed{0%{background:rgba(248,113,113,.35);}100%{background:var(--bg-2);}}
+  .slot-placeholder{color:var(--text-2);font-size:.8rem;padding:6px 4px;}
+
+  /* clean prompt */
+  .messy-prompt{
+    background:var(--bg-1);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:16px;
+    font-size:.88rem;
+    line-height:1.7;
+    color:var(--text-1);
+  }
+  .clean-chip{
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:6px;
+    margin:2px;
+    cursor:pointer;
+    border:1px solid transparent;
+    transition:.15s ease;
+  }
+  .clean-chip.flagged{
+    background:rgba(248,113,113,.15);
+    border-color:rgba(248,113,113,.4);
+    color:var(--danger);
+    text-decoration:line-through;
+  }
+  .clean-chip:hover{border-color:var(--accent-2);}
+  .clean-chip.removed{opacity:.3;text-decoration:line-through;pointer-events:none;}
+
+  /* choose best */
+  .choice-list{display:flex;flex-direction:column;gap:12px;}
+  .choice-card{
+    background:var(--bg-1);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 16px;
+    cursor:pointer;
+    transition:.15s ease;
+  }
+  .choice-card:hover{border-color:var(--accent-2);}
+  .choice-card.selected{border-color:var(--accent);background:rgba(110,231,183,.06);}
+  .choice-card.correct-pick{border-color:var(--accent);background:rgba(110,231,183,.1);}
+  .choice-card.wrong-pick{border-color:var(--danger);background:rgba(248,113,113,.08);}
+  .choice-label{font-size:.7rem;text-transform:uppercase;color:var(--text-2);letter-spacing:.5px;margin-bottom:4px;font-weight:700;}
+  .choice-text{font-size:.86rem;color:var(--text-0);white-space:pre-wrap;}
+
+  .action-row{display:flex;justify-content:space-between;align-items:center;margin-top:22px;flex-wrap:wrap;gap:12px;}
+  .hint-btn{
+    background:transparent;
+    border:1px solid var(--warn);
+    color:var(--warn);
+    padding:8px 14px;
+    border-radius:8px;
+    font-size:.8rem;
+    cursor:pointer;
+  }
+  .hint-btn:hover{background:rgba(251,191,36,.1);}
+
+  .feedback-box{
+    margin-top:18px;
+    padding:16px;
+    border-radius:10px;
+    font-size:.87rem;
+    display:none;
+  }
+  .feedback-box.show{display:block;animation:slideIn .3s ease;}
+  .feedback-box.good{background:rgba(110,231,183,.08);border:1px solid rgba(110,231,183,.35);}
+  .feedback-box.bad{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.35);}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+  .feedback-box .principle{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);color:var(--text-1);}
+  .output-compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
+  @media(max-width:640px){.output-compare{grid-template-columns:1fr;}}
+  .output-card{background:var(--bg-2);border-radius:8px;padding:10px 12px;font-size:.8rem;}
+  .output-card.weak{border-left:3px solid var(--danger);}
+  .output-card.strong{border-left:3px solid var(--accent);}
+  .output-card b{display:block;margin-bottom:4px;font-size:.72rem;text-transform:uppercase;color:var(--text-2);}
+
+  /* floating toast */
+  .toast{
+    position:fixed;
+    top:20px;
+    right:20px;
+    background:var(--bg-2);
+    border:1px solid var(--accent);
+    color:var(--text-0);
+    padding:12px 20px;
+    border-radius:10px;
+    box-shadow:var(--shadow);
+    z-index:999;
+    font-size:.85rem;
+    font-weight:600;
+    animation:toastIn .3s ease, toastOut .3s ease 2.2s forwards;
+  }
+  @keyframes toastIn{from{opacity:0;transform:translateX(30px);}to{opacity:1;transform:translateX(0);}}
+  @keyframes toastOut{to{opacity:0;transform:translateX(30px);}}
+
+  .score-pop{
+    position:fixed;
+    pointer-events:none;
+    font-weight:800;
+    font-size:1.3rem;
+    color:var(--accent);
+    z-index:999;
+    animation:popUp 1s ease forwards;
+  }
+  @keyframes popUp{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-50px);}}
+
+  /* report */
+  .report-hero{text-align:center;padding:20px 0 10px;}
+  .score-circle{
+    width:150px;height:150px;
+    border-radius:50%;
+    margin:0 auto 16px;
+    display:flex;align-items:center;justify-content:center;
+    flex-direction:column;
+    background:conic-gradient(var(--accent) calc(var(--pct)*1%), var(--bg-2) 0);
+    position:relative;
+  }
+  .score-circle::before{
+    content:'';
+    position:absolute;
+    inset:8px;
+    border-radius:50%;
+    background:var(--card);
+  }
+  .score-circle .val{position:relative;font-size:2rem;font-weight:800;}
+  .score-circle .lbl{position:relative;font-size:.7rem;color:var(--text-1);text-transform:uppercase;}
+  .rank-badge{
+    display:inline-block;
+    font-size:1.1rem;
+    font-weight:800;
+    padding:6px 18px;
+    border-radius:20px;
+    background:rgba(110,231,183,.12);
+    color:var(--accent);
+    border:1px solid rgba(110,231,183,.4);
+    margin-bottom:6px;
+  }
+  .metrics-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+    gap:12px;
+    margin:20px 0;
+  }
+  .metric-tile{
+    background:var(--bg-2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px;
+    text-align:center;
+  }
+  .metric-tile .n{font-size:1.4rem;font-weight:800;color:var(--accent-2);}
+  .metric-tile .t{font-size:.72rem;color:var(--text-2);text-transform:uppercase;margin-top:2px;}
+  .dna-bars{display:flex;flex-direction:column;gap:10px;margin:18px 0;}
+  .dna-row{display:flex;align-items:center;gap:10px;font-size:.8rem;}
+  .dna-row .name{width:130px;color:var(--text-1);flex-shrink:0;}
+  .dna-track{flex:1;height:8px;background:var(--bg-2);border-radius:4px;overflow:hidden;}
+  .dna-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent-2),var(--accent-3));}
+  .final-prompt-box{
+    background:var(--bg-1);
+    border:1px solid var(--accent);
+    border-radius:10px;
+    padding:16px;
+    font-size:.85rem;
+    color:var(--text-0);
+    white-space:pre-wrap;
+    margin-top:10px;
+  }
+  .feedback-list{color:var(--text-1);font-size:.86rem;line-height:1.8;margin:10px 0;padding-left:18px;}
+  .milestone-box{
+    background:rgba(96,165,250,.08);
+    border:1px solid rgba(96,165,250,.3);
+    border-radius:10px;
+    padding:14px 16px;
+    font-size:.85rem;
+    margin-top:16px;
+  }
+  h3.section-h{font-size:.95rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-2);margin:24px 0 10px;}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>🧩 Prompt Puzzle</h1>
+    <p>Master AI Prompting Through Play</p>
+  </div>
+
+  <!-- INTAKE (kept for replay flexibility, pre-filled/hidden per initial answers) -->
+  <div class="card" id="intakeScreen">
+    <h3 class="section-h" style="margin-top:0;">Domain</h3>
+    <div class="intake-grid" id="domainGrid"></div>
+    <h3 class="section-h">Difficulty</h3>
+    <div class="intake-grid" id="diffGrid"></div>
+    <div class="btn-row">
+      <button class="btn" id="startBtn" disabled>Start Puzzle →</button>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div class="card hidden" id="gameScreen">
+    <div class="topbar">
+      <div class="stats-row">
+        <span class="stat-pill">🎯 Accuracy <b id="statAcc">100%</b></span>
+        <span class="stat-pill">⏱ <b id="statTime">0:00</b></span>
+        <span class="stat-pill">🖱 Moves <b id="statMoves">0</b></span>
+        <span class="stat-pill">❌ Wrong <b id="statWrong">0</b></span>
+        <span class="stat-pill">💡 Hints <b id="statHints">0</b></span>
+      </div>
+      <div class="stat-pill">Scenario <b id="statScenario">1/6</b></div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+    <div class="challenge-badge" id="challengeBadge">Build the Prompt</div>
+    <div class="scenario-title" id="scenarioTitle"></div>
+    <div class="scenario-sub" id="scenarioSub"></div>
+    <div class="desired-box" id="desiredBox"></div>
+
+    <div id="challengeArea"></div>
+
+    <div class="feedback-box" id="feedbackBox"></div>
+
+    <div class="action-row">
+      <button class="hint-btn" id="hintBtn">💡 Use Hint (−5 pts)</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-secondary hidden" id="checkBtn">Check Answer</button>
+        <button class="btn hidden" id="nextBtn">Next Scenario →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORT -->
+  <div class="card hidden" id="reportScreen">
+    <div class="report-hero">
+      <div class="rank-badge" id="rankBadge">S-Tier Prompter</div>
+      <div class="score-circle" id="scoreCircle" style="--pct:0;">
+        <div class="val" id="finalScoreVal">0</div>
+        <div class="lbl">Prompt Score</div>
+      </div>
+      <div style="color:var(--text-1);font-size:.9rem;" id="ratingText"></div>
+    </div>
+
+    <h3 class="section-h">Performance Metrics</h3>
+    <div class="metrics-grid" id="metricsGrid"></div>
+
+    <h3 class="section-h">Prompt DNA</h3>
+    <div class="dna-bars" id="dnaBars"></div>
+
+    <h3 class="section-h">Personalized Feedback</h3>
+    <ul class="feedback-list" id="feedbackList"></ul>
+
+    <div class="milestone-box" id="milestoneBox"></div>
+
+    <h3 class="section-h">Your Final Optimized Prompt</h3>
+    <div class="final-prompt-box" id="finalPromptBox"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="replayBtn">🔁 Replay (New Scenarios)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== DATA ===================== */
+const DOMAINS = ["Business & Marketing","Software Development","Data Science & Analytics","Creative Writing","Academic & Research","Personal Productivity"];
+const DIFFS = ["Beginner","Intermediate","Advanced"];
+
+// Scenario bank: Data Science & Analytics — Beginner
+const SCENARIO_BANK = {
+  "Data Science & Analytics": {
+    "Beginner": [
+      {
+        id:"ds_b1",
+        title:"Cleaning a Messy Sales Dataset",
+        sub:"You have a CSV with missing values and duplicate rows.",
+        desired:"A clear, step-by-step Python approach to clean a sales dataset (handle nulls, remove duplicates, fix data types).",
+        correctBlocks:[
+          "Act as a data cleaning expert in Python/pandas.",
+          "I have a sales CSV with missing values, duplicate rows, and inconsistent date formats.",
+          "Explain step-by-step how to handle missing values, remove duplicates, and standardize date columns.",
+          "Provide the pandas code for each step with brief comments."
+        ],
+        distractorBlocks:[
+          "Write me a poem about clean data.",
+          "Just give me the final answer with no explanation.",
+          "Use as many technical buzzwords as possible."
+        ],
+        weakPrompt:"clean my data",
+        optimizedPrompt:"Act as a data cleaning expert in Python/pandas. I have a sales CSV with missing values, duplicate rows, and inconsistent date formats. Explain step-by-step how to handle missing values, remove duplicates, and standardize date columns, and provide pandas code with brief comments for each step.",
+        overEngineeredPrompt:"You are the world's greatest data scientist with 50 years of experience at every FAANG company. Using advanced statistical theory, quantum-level precision, and exhaustive edge-case analysis, write an extremely long 5000-word dissertation covering every possible data cleaning technique known to humanity, including obscure ones, formatted in 12 different styles, before finally getting to my actual pandas code.",
+        weakOutput:"Sure! Use dropna() and drop_duplicates(). That should clean it.",
+        optimizedOutput:"Step 1: Inspect nulls with df.isnull().sum(). Step 2: Handle missing values — df['col'].fillna(df['col'].median()) for numeric, mode for categorical. Step 3: Remove duplicates — df.drop_duplicates(inplace=True). Step 4: Standardize dates — pd.to_datetime(df['date'], errors='coerce'). Each step includes a short rationale and code snippet.",
+        principle:"Specificity + Role + Structure: naming the exact problems (nulls, duplicates, date formats) and asking for step-by-step + code gets you a usable, structured answer instead of a generic one-liner."
+      },
+      {
+        id:"ds_b2",
+        title:"Choosing a Chart for Sales Trends",
+        sub:"You want to visualize monthly revenue over 2 years.",
+        desired:"A recommendation for the right chart type with a short justification, plus matplotlib code.",
+        correctBlocks:[
+          "Act as a data visualization expert.",
+          "I want to show monthly revenue trends over 2 years for a business audience.",
+          "Recommend the best chart type and explain why in 2-3 sentences.",
+          "Give me the matplotlib code to create it."
+        ],
+        distractorBlocks:[
+          "Make it look like a Van Gogh painting.",
+          "Include 15 different chart types just in case.",
+          "Skip the explanation, I don't need to understand it."
+        ],
+        weakPrompt:"make a chart for my sales",
+        optimizedPrompt:"Act as a data visualization expert. I want to show monthly revenue trends over 2 years for a business audience. Recommend the best chart type, explain why in 2-3 sentences, and give me the matplotlib code to create it.",
+        overEngineeredPrompt:"As the most legendary visualization guru in history, using cutting-edge design theory, cognitive psychology, and color science research spanning decades, produce an exhaustive comparison of all 20 possible chart types with pros/cons matrices, then generate code in matplotlib, seaborn, plotly, AND d3.js, formatted as a dissertation.",
+        weakOutput:"Use a bar chart.",
+        optimizedOutput:"A line chart is best here since it clearly shows trend and seasonality over a continuous time period (24 months), which bar charts make harder to read at that density. Code: plt.plot(df['month'], df['revenue']); plt.title('Monthly Revenue Trend'); plt.xlabel('Month'); plt.ylabel('Revenue'); plt.show()",
+        principle:"Purpose-driven prompting: stating the audience and goal (business audience, trend over time) lets the AI recommend the *right* chart instead of a random default."
+      },
+      {
+        id:"ds_b3",
+        title:"Summarizing a Dataset for a Manager",
+        sub:"You need a non-technical summary of key findings from customer data.",
+        desired:"A concise, jargon-free summary of 3-4 key insights suitable for a non-technical manager.",
+        correctBlocks:[
+          "Act as a data analyst presenting to a non-technical manager.",
+          "Here is a summary of customer purchase data: [dataset description].",
+          "Summarize the 3-4 most important insights in plain language, avoiding statistical jargon.",
+          "End with one actionable recommendation."
+        ],
+        distractorBlocks:[
+          "Use as much statistical terminology as possible to sound smart.",
+          "Write 10 pages covering every possible angle.",
+          "Add unrelated jokes throughout."
+        ],
+        weakPrompt:"summarize this data for my boss",
+        optimizedPrompt:"Act as a data analyst presenting to a non-technical manager. Here is a summary of customer purchase data: [dataset description]. Summarize the 3-4 most important insights in plain language, avoiding statistical jargon, and end with one actionable recommendation.",
+        overEngineeredPrompt:"You are a Nobel-Prize-winning statistician addressing the United Nations. Provide a hyper-comprehensive multi-page report with confidence intervals, p-values, regression coefficients, and academic citations for every single data point, ensuring maximum technical rigor regardless of audience.",
+        weakOutput:"The data shows a p-value of 0.03 and a correlation coefficient of 0.67 with heteroscedasticity present in the residuals.",
+        optimizedOutput:"1) Repeat customers spend 2x more than first-time buyers. 2) Weekend sales are 30% higher than weekdays. 3) Customers aged 25-34 are your biggest segment. 4) Email promotions correlate with a sales bump. Recommendation: focus marketing spend on weekend email promos targeting the 25-34 age group.",
+        principle:"Audience calibration: specifying who the output is for (non-technical manager) changes both tone and content depth — this is often more important than the topic itself."
+      },
+      {
+        id:"ds_b4",
+        title:"Requesting a Correlation Analysis",
+        sub:"You want to know which variables relate to customer churn.",
+        desired:"A clear explanation of which factors correlate with churn, with method and caveats.",
+        correctBlocks:[
+          "Act as a data scientist analyzing customer churn.",
+          "My dataset has columns: tenure, monthly_charges, contract_type, and churn (yes/no).",
+          "Explain which factors likely correlate with churn and how to test this statistically.",
+          "Mention any caveats about correlation vs causation."
+        ],
+        distractorBlocks:[
+          "Tell me churn is caused by bad luck.",
+          "Give an answer with no reference to the actual columns.",
+          "Ignore statistical validity entirely."
+        ],
+        weakPrompt:"why do customers churn",
+        optimizedPrompt:"Act as a data scientist analyzing customer churn. My dataset has columns: tenure, monthly_charges, contract_type, and churn (yes/no). Explain which factors likely correlate with churn and how to test this statistically, and mention caveats about correlation vs causation.",
+        overEngineeredPrompt:"As a Turing Award-winning AI researcher, perform an exhaustive causal inference analysis using every advanced statistical technique ever invented (propensity score matching, instrumental variables, structural equation modeling, Bayesian networks, etc.) even though I just have 4 basic columns, and write it as a 20-page academic paper.",
+        weakOutput:"Customers churn because they're unhappy.",
+        optimizedOutput:"Likely correlates: short tenure, high monthly_charges, and month-to-month contract_type (vs long-term contracts). Test with a chi-square test for categorical variables (contract_type) and point-biserial correlation for continuous ones (tenure, monthly_charges) against churn. Caveat: correlation doesn't imply causation — a controlled experiment or regression with controls would be needed to confirm drivers.",
+        principle:"Grounding in real data: providing actual column names turns a vague question into an analyzable one, and asking for caveats keeps the AI honest about limitations."
+      },
+      {
+        id:"ds_b5",
+        title:"Writing a SQL Query for a Report",
+        sub:"You need top 5 products by revenue last quarter.",
+        desired:"A correct, readable SQL query with explanation of each clause.",
+        correctBlocks:[
+          "Act as a SQL expert helping build a business report.",
+          "I have a table 'orders' with columns: product_id, product_name, revenue, order_date.",
+          "Write a SQL query to find the top 5 products by total revenue in Q1 2026.",
+          "Briefly explain what each part of the query does."
+        ],
+        distractorBlocks:[
+          "Use a NoSQL database instead even though I said SQL.",
+          "Return results in XML for no reason.",
+          "Don't explain anything, just paste code with no comments."
+        ],
+        weakPrompt:"sql query top products",
+        optimizedPrompt:"Act as a SQL expert helping build a business report. I have a table 'orders' with columns: product_id, product_name, revenue, order_date. Write a SQL query to find the top 5 products by total revenue in Q1 2026, and briefly explain what each part of the query does.",
+        overEngineeredPrompt:"As the chief database architect of a Fortune 500 company, write a 500-line stored procedure with triggers, indexes, partitioning strategy, and disaster recovery plan just to find the top 5 products, and explain the entire history of SQL before answering.",
+        weakOutput:"SELECT * FROM orders ORDER BY revenue DESC LIMIT 5;",
+        optimizedOutput:"SELECT product_name, SUM(revenue) AS total_revenue FROM orders WHERE order_date BETWEEN '2026-01-01' AND '2026-03-31' GROUP BY product_name ORDER BY total_revenue DESC LIMIT 5; — This filters to Q1 2026, sums revenue per product (not per row), sorts descending, and returns only the top 5.",
+        principle:"Schema-aware prompting: giving table/column names prevents the AI from guessing structure, and asking it to aggregate correctly (SUM + GROUP BY) rather than just SELECT * avoids a subtly wrong answer."
+      },
+      {
+        id:"ds_b6",
+        title:"Picking the Right Statistical Test",
+        sub:"You want to compare average order value between two marketing campaigns.",
+        desired:"A recommendation for the correct statistical test with a short justification.",
+        correctBlocks:[
+          "Act as a statistics tutor for a beginner data analyst.",
+          "I want to compare the average order value between Campaign A and Campaign B (two independent groups).",
+          "Recommend the appropriate statistical test and explain why it fits this scenario.",
+          "Briefly describe how to interpret the result (e.g., p-value threshold)."
+        ],
+        distractorBlocks:[
+          "Just say 'it depends' with no further help.",
+          "Recommend a test for paired/dependent samples when the groups are independent.",
+          "Explain in highly technical jargon with no plain-language summary."
+        ],
+        weakPrompt:"which test do i use to compare two groups",
+        optimizedPrompt:"Act as a statistics tutor for a beginner data analyst. I want to compare the average order value between Campaign A and Campaign B (two independent groups). Recommend the appropriate statistical test, explain why it fits this scenario, and briefly describe how to interpret the result.",
+        overEngineeredPrompt:"As a tenured statistics professor writing a peer-reviewed journal article, provide a full derivation of every hypothesis testing framework from first principles including measure theory, then recommend a test only after 3000 words of theoretical background.",
+        weakOutput:"Use a t-test I guess.",
+        optimizedOutput:"Use an independent samples t-test (two-sample t-test), since you're comparing the means of a continuous variable (order value) between two separate, unrelated groups (Campaign A vs B). If the data isn't normally distributed, use the Mann-Whitney U test instead. Interpretation: if p < 0.05, the difference in average order value is statistically significant.",
+        principle:"Matching method to scenario: explicitly stating 'independent groups' and 'continuous variable' lets the AI pick the statistically correct test rather than a generic guess."
+      }
+    ]
+  }
+};
+
+const CHALLENGE_TYPES = ["build","clean","choose"];
+
+/* ===================== STATE ===================== */
+let state = {
+  domain: null,
+  difficulty: null,
+  scenarios: [],
+  currentIndex: 0,
+  challengeSequence: [],
+  score: 0,
+  moves: 0,
+  wrong: 0,
+  hints: 0,
+  correctPlacements: 0,
+  totalPlacementsNeeded: 0,
+  startTime: null,
+  timerInterval: null,
+  perScenarioResults: [],
+  currentChallengeAnswered: false
+};
+
+/* ===================== UTIL ===================== */
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function pick(arr,n){ return shuffle(arr).slice(0,n); }
+function fmtTime(s){
+  const m = Math.floor(s/60), sec = s%60;
+  return `${m}:${sec.toString().padStart(2,'0')}`;
+}
+function showToast(msg){
+  const t = document.createElement('div');
+  t.className='toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2500);
+}
+function popScore(x,y,text,color){
+  const p = document.createElement('div');
+  p.className='score-pop';
+  p.style.left = x+'px';
+  p.style.top = y+'px';
+  p.style.color = color || 'var(--accent)';
+  p.textContent = text;
+  document.body.appendChild(p);
+  setTimeout(()=>p.remove(), 1000);
+}
+
+/* ===================== INTAKE SCREEN ===================== */
+const domainGrid = document.getElementById('domainGrid');
+const diffGrid = document.getElementById('diffGrid');
+const startBtn = document.getElementById('startBtn');
+
+DOMAINS.forEach(d=>{
+  const b = document.createElement('button');
+  b.className='option-btn';
+  b.textContent = d;
+  b.onclick = ()=>{
+    [...domainGrid.children].forEach(c=>c.classList.remove('selected'));
+    b.classList.add('selected');
+    state.domain = d;
+    checkIntakeReady();
+  };
+  domainGrid.appendChild(b);
+});
+DIFFS.forEach(d=>{
+  const b = document.createElement('button');
+  b.className='option-btn';
+  b.textContent = d;
+  b.onclick = ()=>{
+    [...diffGrid.children].forEach(c=>c.classList.remove('selected'));
+    b.classList.add('selected');
+    state.difficulty = d;
+    checkIntakeReady();
+  };
+  diffGrid.appendChild(b);
+});
+
+// Pre-select based on conversation answers
+function preselect(domain, difficulty){
+  [...domainGrid.children].forEach(c=>{
+    if(c.textContent===domain){c.classList.add('selected'); state.domain=domain;}
+  });
+  [...diffGrid.children].forEach(c=>{
+    if(c.textContent===difficulty){c.classList.add('selected'); state.difficulty=difficulty;}
+  });
+  checkIntakeReady();
+}
+
+function checkIntakeReady(){
+  startBtn.disabled = !(state.domain && state.difficulty);
+}
+
+startBtn.onclick = ()=>{
+  initGame();
+};
+
+/* ===================== GAME INIT ===================== */
+function getScenarioPool(){
+  const domainData = SCENARIO_BANK[state.domain];
+  if(domainData && domainData[state.difficulty]){
+    return domainData[state.difficulty];
+  }
+  // fallback: reuse Data Science Beginner bank structurally if other domain/diff not populated
+  return SCENARIO_BANK["Data Science & Analytics"]["Beginner"];
+}
+
+function initGame(){
+  document.getElementById('intakeScreen').classList.add('hidden');
+  document.getElementById('reportScreen').classList.add('hidden');
+  document.getElementById('gameScreen').classList.remove('hidden');
+
+  const pool = getScenarioPool();
+  const count = Math.min(6, pool.length);
+  state.scenarios = pick(pool, count);
+  state.challengeSequence = state.scenarios.map((_,i)=> CHALLENGE_TYPES[i % CHALLENGE_TYPES.length]);
+  state.challengeSequence = shuffle(state.challengeSequence);
+  state.currentIndex = 0;
+  state.score = 0;
+  state.moves = 0;
+  state.wrong = 0;
+  state.hints = 0;
+  state.correctPlacements = 0;
+  state.totalPlacementsNeeded = 0;
+  state.perScenarioResults = [];
+  state.startTime = Date.now();
+
+  if(state.timerInterval) clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(updateTimer, 1000);
+
+  loadScenario();
+}
+
+function updateTimer(){
+  const s = Math.floor((Date.now()-state.startTime)/1000);
+  document.getElementById('statTime').textContent = fmtTime(s);
+}
+
+function updateStatsBar(){
+  const total = state.correctPlacements + state.wrong;
+  const acc = total>0 ? Math.round((state.correctPlacements/total)*100) : 100;
+  document.getElementById('statAcc').textContent = acc+'%';
+  document.getElementById('statMoves').textContent = state.moves;
+  document.getElementById('statWrong').textContent = state.wrong;
+  document.getElementById('statHints').textContent = state.hints;
+  document.getElementById('statScenario').textContent = `${state.currentIndex+1}/${state.scenarios.length}`;
+  document.getElementById('progressFill').style.width = `${(state.currentIndex/state.scenarios.length)*100}%`;
+}
+
+/* ===================== LOAD SCENARIO ===================== */
+function loadScenario(){
+  state.currentChallengeAnswered = false;
+  const scenario = state.scenarios[state.currentIndex];
+  const type = state.challengeSequence[state.currentIndex];
+
+  const badge = document.getElementById('challengeBadge');
+  badge.textContent = type==='build' ? 'Build the Prompt' : type==='clean' ? 'Clean the Prompt' : 'Choose the Best Prompt';
+
+  document.getElementById('scenarioTitle').textContent = scenario.title;
+  document.getElementById('scenarioSub').textContent = scenario.sub;
+  document.getElementById('desiredBox').innerHTML = `<b>Desired Output:</b> ${scenario.desired}`;
+
+  document.getElementById('feedbackBox').className = 'feedback-box';
+  document.getElementById('feedbackBox').innerHTML = '';
+  document.getElementById('checkBtn').classList.remove('hidden');
+  document.getElementById('nextBtn').classList.add('hidden');
+  document.getElementById('hintBtn').disabled = false;
+
+  updateStatsBar();
+
+  const area = document.getElementById('challengeArea');
+  area.innerHTML = '';
+
+  if(type==='build') renderBuild(scenario, area);
+  else if(type==='clean') renderClean(scenario, area);
+  else renderChoose(scenario, area);
+}
+
+/* ===================== CHALLENGE 1: BUILD THE PROMPT ===================== */
+function renderBuild(scenario, area){
+  let dragId = 0;
+  function attachDrag(el){
+    el.id = 'blk_'+(dragId++)+'_'+Math.random().toString(36).slice(2);
+    el.addEventListener('dragstart', e=>{
+      e.dataTransfer.setData('text/plain', el.id);
+      el.classList.add('dragging');
+    });
+    el.addEventListener('dragend', ()=> el.classList.remove('dragging'));
+  }
+
+  const allBlocks = shuffle([...scenario.correctBlocks, ...scenario.distractorBlocks]);
+  state.totalPlacementsNeeded = scenario.correctBlocks.length;
+
+  area.innerHTML = `
+    <div class="zone-label">Available Blocks (drag into order below)</div>
+    <div class="bank" id="bankZone"></div>
+    <div class="zone-label">Your Prompt (in order)</div>
+    <div class="slots" id="slotZone"><div class="slot-placeholder">Drop blocks here in the correct order...</div></div>
+  `;
+
+  const bank = document.getElementById('bankZone');
+  const slots = document.getElementById('slotZone');
+
+  allBlocks.forEach((text,i)=>{
+    const b = document.createElement('div');
+    b.className='block';
+    b.draggable = true;
+    b.textContent = text;
+    b.dataset.text = text;
+    b.dataset.correct = scenario.correctBlocks.includes(text);
+    attachDrag(b);
+    bank.appendChild(b);
+  });
+
+  [bank, slots].forEach(zone=>{
+    zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', ()=> zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e=>{
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const id = e.dataTransfer.getData('text/plain');
+      const dragged = document.getElementById(id);
+      if(!dragged) return;
+      if(zone===slots){
+        const ph = slots.querySelector('.slot-placeholder');
+        if(ph) ph.remove();
+      }
+      zone.appendChild(dragged);
+      if(bank.children.length===0){
+        // nothing
+      }
+      if(slots.children.length===0){
+        slots.innerHTML = '<div class="slot-placeholder">Drop blocks here in the correct order...</div>';
+      }
+      state.moves++;
+      updateStatsBar();
+    });
+  });
+
+  document.getElementById('checkBtn').onclick = ()=>{
+    if(state.currentChallengeAnswered) return;
+    const placed = [...slots.children].filter(c=>c.classList.contains('block'));
+    let correctCount = 0;
+    placed.forEach((el, idx)=>{
+      const isCorrectBlock = el.dataset.correct === 'true';
+      const correctPosition = scenario.correctBlocks[idx] === el.dataset.text;
+      if(isCorrectBlock && correctPosition){
+        el.classList.add('correct-flash');
+        correctCount++;
+        state.correctPlacements++;
+      } else {
+        el.classList.add('wrong-flash');
+        state.wrong++;
+      }
+    });
+    // any distractor blocks left in bank correctly excluded doesn't penalize
+    const missingCount = scenario.correctBlocks.length - correctCount;
+    const accuracyRatio = correctCount / scenario.correctBlocks.length;
+    finishChallenge(accuracyRatio, scenario);
+  };
+}
+
+/* ===================== CHALLENGE 2: CLEAN THE PROMPT ===================== */
+function renderClean(scenario, area){
+  // Build a messy version: optimized prompt + 2-3 junk clauses inserted
+  const junk = [
+    " also please use extremely flowery language for no reason",
+    " and add unnecessary emojis everywhere 🎉🚀✨",
+    " make it as long as humanly possible with pointless repetition repetition repetition",
+    " ignore best practices just to see what happens"
+  ];
+  const junkPicks = pick(junk, 3);
+  // Split optimized prompt into sentence-ish chunks and interleave junk
+  const baseParts = scenario.optimizedPrompt.split('. ').map(s=>s.trim()).filter(Boolean);
+  const parts = [];
+  baseParts.forEach((p,i)=>{
+    parts.push({text:p+(p.endsWith('.')?'':'.'), junk:false});
+    if(junkPicks[i]) parts.push({text:junkPicks[i]+'.', junk:true});
+  });
+  state.totalPlacementsNeeded = junkPicks.length;
+
+  const container = document.createElement('div');
+  container.className='messy-prompt';
+  container.id = 'messyContainer';
+
+  parts.forEach((p,i)=>{
+    const span = document.createElement('span');
+    span.className = 'clean-chip';
+    span.dataset.junk = p.junk;
+    span.dataset.flagged = 'false';
+    span.textContent = p.text + ' ';
+    span.onclick = ()=>{
+      if(state.currentChallengeAnswered) return;
+      const flagged = span.dataset.flagged === 'true';
+      span.dataset.flagged = flagged ? 'false' : 'true';
+      span.classList.toggle('flagged');
+      state.moves++;
+      updateStatsBar();
+    };
+    container.appendChild(span);
+  });
+
+  area.innerHTML = `<div class="zone-label">Click the clauses that DON'T belong in a good prompt (they'll be struck through), then check your answer.</div>`;
+  area.appendChild(container);
+
+  document.getElementById('checkBtn').onclick = ()=>{
+    if(state.currentChallengeAnswered) return;
+    const chips = [...container.children];
+    let correctCount = 0;
+    chips.forEach(c=>{
+      const isJunk = c.dataset.junk === 'true';
+      const flagged = c.dataset.flagged === 'true';
+      if(isJunk === flagged){
+        correctCount++;
+        state.correctPlacements++;
+      } else {
+        state.wrong++;
+      }
+    });
+    const accuracyRatio = correctCount / chips.length;
+    finishChallenge(accuracyRatio, scenario);
+  };
+}
+
+/* ===================== CHALLENGE 3: CHOOSE THE BEST PROMPT ===================== */
+function renderChoose(scenario, area){
+  const options = shuffle([
+    {label:'Option A', text:scenario.weakPrompt, type:'weak'},
+    {label:'Option B', text:scenario.optimizedPrompt, type:'optimized'},
+    {label:'Option C', text:scenario.overEngineeredPrompt, type:'over'}
+  ]);
+  state.totalPlacementsNeeded = 1;
+
+  area.innerHTML = `<div class="zone-label">Which prompt would produce the best result — clear, complete, and efficient?</div><div class="choice-list" id="choiceList"></div>`;
+  const list = document.getElementById('choiceList');
+
+  let selectedCard = null;
+  options.forEach(opt=>{
+    const card = document.createElement('div');
+    card.className='choice-card';
+    card.innerHTML = `<div class="choice-label">${opt.label}</div><div class="choice-text">${opt.text}</div>`;
+    card.dataset.type = opt.type;
+    card.onclick = ()=>{
+      if(state.currentChallengeAnswered) return;
+      [...list.children].forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedCard = card;
+      state.moves++;
+      updateStatsBar();
+    };
+    list.appendChild(card);
+  });
+
+  document.getElementById('checkBtn').onclick = ()=>{
+    if(state.currentChallengeAnswered) return;
+    if(!selectedCard){
+      showToast('Pick an option first!');
+      return;
+    }
+    const isCorrect = selectedCard.dataset.type === 'optimized';
+    [...list.children].forEach(c=>{
+      if(c.dataset.type==='optimized') c.classList.add('correct-pick');
+      if(c===selectedCard && !isCorrect) c.classList.add('wrong-pick');
+    });
+    if(isCorrect){ state.correctPlacements++; } else { state.wrong++; }
+    const accuracyRatio = isCorrect ? 1 : 0;
+    finishChallenge(accuracyRatio, scenario);
+  };
+}
+
+/* ===================== FINISH CHALLENGE ===================== */
+function finishChallenge(accuracyRatio, scenario){
+  state.currentChallengeAnswered = true;
+  document.getElementById('checkBtn').classList.add('hidden');
+  document.getElementById('nextBtn').classList.remove('hidden');
+  document.getElementById('hintBtn').disabled = true;
+
+  const basePoints = Math.round(accuracyRatio * 100);
+  const bonus = accuracyRatio === 1 ? 15 : 0;
+  const points = basePoints + bonus;
+  state.score += points;
+  state.perScenarioResults.push({title:scenario.title, accuracyRatio, points});
+
+  const fb = document.getElementById('feedbackBox');
+  fb.className = 'feedback-box show ' + (accuracyRatio>=0.75 ? 'good':'bad');
+  fb.innerHTML = `
+    <div><b>${accuracyRatio>=0.75 ? '✅ Nice work!' : '⚠️ Room to improve'}</b> — you earned <b>${points} pts</b> (${Math.round(accuracyRatio*100)}% accurate)${bonus? ' + optimization bonus!':''}</div>
+    <div class="output-compare">
+      <div class="output-card weak"><b>Weak Prompt Output</b>${scenario.weakOutput}</div>
+      <div class="output-card strong"><b>Optimized Prompt Output</b>${scenario.optimizedOutput}</div>
+    </div>
+    <div class="principle"><b>Prompt Principle:</b> ${scenario.principle}</div>
+  `;
+
+  popScore(window.innerWidth/2, 200, `+${points}`, accuracyRatio>=0.75 ? 'var(--accent)':'var(--warn)');
+  showToast(accuracyRatio===1 ? '🔥 Perfect placement!' : accuracyRatio>=0.75 ? 'Good job!' : 'Keep practicing!');
+  updateStatsBar();
+}
+
+document.getElementById('hintBtn').onclick = ()=>{
+  if(state.currentChallengeAnswered) return;
+  state.hints++;
+  state.score = Math.max(0, state.score - 5);
+  const scenario = state.scenarios[state.currentIndex];
+  const type = state.challengeSequence[state.currentIndex];
+  let hintMsg = '';
+  if(type==='build') hintMsg = 'Hint: Start with a role/persona block, then context, then the specific task.';
+  else if(type==='clean') hintMsg = 'Hint: Look for clauses about excessive length, unnecessary style, or ignoring best practices.';
+  else hintMsg = 'Hint: The best prompt balances clarity and completeness — not too short, not bloated.';
+  showToast(hintMsg);
+  updateStatsBar();
+};
+
+document.getElementById('nextBtn').onclick = ()=>{
+  state.currentIndex++;
+  if(state.currentIndex >= state.scenarios.length){
+    finishGame();
+  } else {
+    loadScenario();
+  }
+};
+
+/* ===================== FINISH GAME / REPORT ===================== */
+function finishGame(){
+  clearInterval(state.timerInterval);
+  document.getElementById('gameScreen').classList.add('hidden');
+  document.getElementById('reportScreen').classList.remove('hidden');
+
+  const totalTime = Math.floor((Date.now()-state.startTime)/1000);
+  const maxPossible = state.scenarios.length * 115; // 100 base + 15 bonus each
+  const pct = Math.max(0, Math.min(100, Math.round((state.score / maxPossible) * 100)));
+
+  let rank, rating;
+  if(pct>=90){ rank='S — Prompt Virtuoso'; rating='Exceptional'; }
+  else if(pct>=75){ rank='A — Prompt Pro'; rating='Excellent'; }
+  else if(pct>=60){ rank='B — Prompt Practitioner'; rating='Good'; }
+  else if(pct>=40){ rank='C — Prompt Apprentice'; rating='Developing'; }
+  else { rank='D — Prompt Novice'; rating='Needs Practice'; }
+
+  document.getElementById('rankBadge').textContent = rank;
+  document.getElementById('ratingText').textContent = `Rating: ${rating}`;
+  document.getElementById('scoreCircle').style.setProperty('--pct', pct);
+  document.getElementById('finalScoreVal').textContent = state.score;
+
+  const totalPlacements = state.correctPlacements + state.wrong;
+  const finalAcc = totalPlacements>0 ? Math.round((state.correctPlacements/totalPlacements)*100) : 100;
+
+  document.getElementById('metricsGrid').innerHTML = `
+    <div class="metric-tile"><div class="n">${finalAcc}%</div><div class="t">Accuracy</div></div>
+    <div class="metric-tile"><div class="n">${fmtTime(totalTime)}</div><div class="t">Time</div></div>
+    <div class="metric-tile"><div class="n">${state.moves}</div><div class="t">Moves</div></div>
+    <div class="metric-tile"><div class="n">${state.wrong}</div><div class="t">Wrong Placements</div></div>
+    <div class="metric-tile"><div class="n">${state.hints}</div><div class="t">Hints Used</div></div>
+    <div class="metric-tile"><div class="n">${state.score}</div><div class="t">Prompt Score</div></div>
+  `;
+
+  // Prompt DNA: derive pseudo-traits from performance
+  const clarity = Math.min(100, finalAcc);
+  const specificity = Math.min(100, Math.round((state.correctPlacements / Math.max(1,totalPlacements)) * 100));
+  const efficiency = Math.max(10, 100 - state.hints*10 - Math.max(0, state.wrong*5));
+  const structure = Math.min(100, Math.round(pct*0.9 + 10));
+  const dna = [
+    {name:'Clarity', val:clarity},
+    {name:'Specificity', val:specificity},
+    {name:'Efficiency', val:Math.min(100,efficiency)},
+    {name:'Structure', val:structure}
+  ];
+  document.getElementById('dnaBars').innerHTML = dna.map(d=>`
+    <div class="dna-row">
+      <span class="name">${d.name}</span>
+      <div class="dna-track"><div class="dna-fill" style="width:${d.val}%"></div></div>
+      <span>${d.val}%</span>
+    </div>
+  `).join('');
+
+  // Personalized feedback
+  const feedback = [];
+  if(finalAcc>=85) feedback.push('You consistently identified the correct prompt structure — strong grasp of role + context + task ordering.');
+  else feedback.push('Focus on prompt structure: lead with a role, add specific context, then state the exact task clearly.');
+  if(state.hints>2) feedback.push('You relied on hints several times — try predicting the principle before checking (role, specificity, structure) next round.');
+  else feedback.push('You needed minimal hints — good independent reasoning about prompt design.');
+  if(state.wrong>state.scenarios.length) feedback.push("Watch for over-engineered prompts: more words isn't always better — precision beats length.");
+  else feedback.push('You avoided most over-engineering traps — good instinct for concise, purposeful prompts.');
+  document.getElementById('feedbackList').innerHTML = feedback.map(f=>`<li>${f}</li>`).join('');
+
+  // Next milestone
+  let milestone;
+  if(pct<60) milestone = 'Next Milestone: Reach 60%+ by practicing the "role + context + task" pattern until it becomes automatic.';
+  else if(pct<85) milestone = 'Next Milestone: Push past 85% by tightening specificity — always name exact data, formats, or constraints.';
+  else milestone = 'Next Milestone: Try the Intermediate or Advanced difficulty to test multi-constraint, ambiguous scenarios.';
+  document.getElementById('milestoneBox').innerHTML = `<b>🎯 ${milestone}</b>`;
+
+  // Final optimized prompt: use the best-scoring scenario's optimized prompt as example
+  const bestResult = state.scenarios[0];
+  document.getElementById('finalPromptBox').textContent = bestResult.optimizedPrompt;
+}
+
+document.getElementById('replayBtn').onclick = ()=>{
+  document.getElementById('reportScreen').classList.add('hidden');
+  document.getElementById('intakeScreen').classList.remove('hidden');
+  document.getElementById('gameScreen').classList.add('hidden');
+  // keep same domain/difficulty selected, just reset for a fresh randomized run
+  checkIntakeReady();
+};
+
+/* ===================== AUTO-START WITH PRESELECTED ANSWERS ===================== */
+preselect("Data Science & Analytics", "Beginner");
+</script>
+</body>
+</html>
