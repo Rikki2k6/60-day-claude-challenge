@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cognitive Pattern Explorer</title>
+<style>
+  :root{
+    --bg-0:#eef1ee;
+    --bg-1:#e3e9e3;
+    --surface:#ffffff;
+    --surface-tint:#f6f9f6;
+    --ink:#293430;
+    --ink-soft:#5c6963;
+    --sage:#4b6455;
+    --sage-deep:#38493d;
+    --lavender:#8d80ac;
+    --clay:#c98a63;
+    --line:#d7ddd6;
+    --shadow: 0 10px 30px -12px rgba(41,52,48,0.18);
+    --radius: 18px;
+    --ease: cubic-bezier(.22,.8,.32,1);
+    --speed-slow: 1;
+  }
+  body.stress-mode{
+    --bg-0:#f2ece6;
+    --bg-1:#ede2d8;
+    --sage:#a15a3a;
+    --sage-deep:#7c3f27;
+    --lavender:#b0684f;
+    --clay:#4b6455;
+    --speed-slow: 0.55;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color:var(--ink);
+    background: radial-gradient(circle at 20% -10%, var(--bg-1), var(--bg-0) 60%);
+    min-height:100vh;
+    overflow-x:hidden;
+    transition: background 1.2s var(--ease);
+  }
+  h1,h2,h3,.serif{
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+  .visually-hidden{
+    position:absolute; width:1px; height:1px; overflow:hidden;
+    clip:rect(0 0 0 0); white-space:nowrap;
+  }
+  /* ambient orb */
+  .orb{
+    position:fixed; border-radius:50%; filter: blur(60px);
+    background: radial-gradient(circle, var(--sage) 0%, transparent 70%);
+    opacity:0.28; pointer-events:none; z-index:0;
+    animation: drift calc(26s / var(--speed-slow)) ease-in-out infinite;
+  }
+  .orb.o1{ width:420px; height:420px; top:-120px; left:-100px; }
+  .orb.o2{ width:340px; height:340px; bottom:-100px; right:-80px; background: radial-gradient(circle, var(--lavender) 0%, transparent 70%); animation-duration: calc(32s / var(--speed-slow)); animation-delay:-4s;}
+  @keyframes drift{
+    0%,100%{ transform: translate(0,0) scale(1); }
+    50%{ transform: translate(30px,-20px) scale(1.08); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .orb{ animation: none; }
+    *{ scroll-behavior:auto !important; }
+  }
+
+  .app{
+    position:relative; z-index:1;
+    max-width:760px; margin:0 auto; padding:28px 20px 80px;
+    min-height:100vh; display:flex; flex-direction:column;
+  }
+
+  /* progress bar */
+  .progress-wrap{
+    display:flex; align-items:center; gap:10px; margin-bottom:28px;
+  }
+  .progress-track{
+    flex:1; height:6px; background:var(--line); border-radius:99px; overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; width:0%; background: linear-gradient(90deg, var(--sage), var(--lavender));
+    border-radius:99px; transition: width .6s var(--ease);
+  }
+  .progress-label{
+    font-size:0.78rem; color:var(--ink-soft); white-space:nowrap; min-width:64px; text-align:right;
+  }
+
+  .screen{
+    display:none;
+    animation: fadeUp .6s var(--ease);
+  }
+  .screen.active{ display:block; }
+  @keyframes fadeUp{
+    from{ opacity:0; transform: translateY(14px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .screen{ animation: none; }
+  }
+
+  .card{
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px;
+    border: 1px solid var(--line);
+  }
+
+  /* Start screen */
+  .start-title{ font-size: 2.1rem; line-height:1.15; margin: 6px 0 10px; color:var(--sage-deep); }
+  .start-sub{ color:var(--ink-soft); font-size:1.02rem; line-height:1.55; max-width:52ch; margin-bottom:26px; }
+  .eyebrow{
+    font-size:0.72rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--lavender); font-weight:700;
+  }
+  .mode-row{
+    display:flex; gap:12px; margin: 22px 0 28px; flex-wrap:wrap;
+  }
+  .mode-btn{
+    flex:1; min-width:150px; text-align:left; padding:16px 18px; border-radius:14px;
+    border:1.5px solid var(--line); background:var(--surface-tint); cursor:pointer;
+    transition: border-color .25s var(--ease), transform .25s var(--ease), background .25s var(--ease);
+    font-family:inherit; color:var(--ink);
+  }
+  .mode-btn:hover{ transform: translateY(-2px); }
+  .mode-btn.selected{ border-color: var(--sage); background: #eef4ee; }
+  .mode-btn strong{ display:block; font-size:0.98rem; margin-bottom:3px; }
+  .mode-btn span{ font-size:0.82rem; color:var(--ink-soft); }
+
+  button.primary{
+    appearance:none; border:none; cursor:pointer;
+    background: linear-gradient(135deg, var(--sage), var(--sage-deep));
+    color:#fff; font-weight:600; font-size:0.96rem;
+    padding:14px 26px; border-radius:12px;
+    box-shadow: 0 8px 20px -8px rgba(56,73,61,0.5);
+    transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+    font-family:inherit;
+  }
+  button.primary:hover{ transform: translateY(-2px); box-shadow: 0 12px 24px -8px rgba(56,73,61,0.55); }
+  button.primary:active{ transform: translateY(0); }
+  button.ghost{
+    appearance:none; cursor:pointer; background:transparent; border:1.5px solid var(--line);
+    color:var(--ink-soft); font-weight:600; padding:12px 22px; border-radius:12px; font-family:inherit;
+    transition: border-color .2s var(--ease), color .2s var(--ease);
+  }
+  button.ghost:hover{ border-color: var(--sage); color: var(--sage-deep); }
+
+  button:focus-visible, .mode-btn:focus-visible, [tabindex]:focus-visible, .card-item:focus-visible{
+    outline: 3px solid var(--lavender); outline-offset: 2px;
+  }
+
+  .btn-row{ display:flex; gap:12px; justify-content:space-between; margin-top:26px; flex-wrap:wrap; }
+
+  /* Chapter header */
+  .chapter-eyebrow{ font-size:0.75rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--sage); font-weight:700; margin-bottom:6px;}
+  .chapter-title{ font-size:1.5rem; margin:0 0 8px; color:var(--sage-deep); }
+  .chapter-intro{ color:var(--ink-soft); font-size:0.95rem; margin-bottom:22px; line-height:1.5;}
+
+  /* Scenario (chapter 1) */
+  .sub-progress{ display:flex; gap:6px; margin-bottom:18px; }
+  .sub-dot{ width:100%; height:4px; background:var(--line); border-radius:99px; }
+  .sub-dot.done{ background: var(--sage); }
+  .sub-dot.current{ background: var(--lavender); }
+  .scenario-text{ font-size:1.08rem; line-height:1.6; margin-bottom:20px; }
+  .options{ display:flex; flex-direction:column; gap:10px; }
+  .option-btn{
+    text-align:left; padding:14px 16px; border-radius:12px; border:1.5px solid var(--line);
+    background:var(--surface-tint); cursor:pointer; font-family:inherit; font-size:0.94rem;
+    color:var(--ink); transition: border-color .2s var(--ease), background .2s var(--ease), transform .15s var(--ease);
+  }
+  .option-btn:hover{ border-color:var(--sage); transform: translateX(2px); }
+  .option-btn.picked{ border-color:var(--sage); background:#eef4ee; }
+
+  /* Sortable list (chapters 2 & 3) */
+  .sortable-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+  .card-item{
+    display:flex; align-items:center; gap:12px;
+    background: var(--surface-tint); border:1.5px solid var(--line); border-radius:12px;
+    padding:12px 14px; cursor:grab; user-select:none;
+    transition: box-shadow .2s var(--ease), border-color .2s var(--ease), transform .15s var(--ease);
+  }
+  .card-item.dragging{ opacity:0.5; }
+  .card-item.drag-over{ border-color:var(--sage); box-shadow: 0 0 0 3px rgba(75,100,85,0.12); }
+  .rank-num{
+    width:26px; height:26px; border-radius:50%; background:var(--sage); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:0.78rem; font-weight:700; flex-shrink:0;
+  }
+  .card-item-text{ flex:1; }
+  .card-item-text strong{ display:block; font-size:0.92rem; }
+  .card-item-text span{ font-size:0.78rem; color:var(--ink-soft); }
+  .grip{ color: var(--ink-soft); font-size:1.1rem; letter-spacing:2px; opacity:0.6; }
+  .kbd-controls{ display:flex; flex-direction:column; gap:2px; }
+  .kbd-controls button{
+    width:26px; height:22px; border-radius:6px; border:1px solid var(--line); background:#fff;
+    cursor:pointer; font-size:0.7rem; color:var(--ink-soft); line-height:1;
+  }
+  .kbd-controls button:hover{ border-color:var(--sage); color:var(--sage-deep); }
+
+  .timeline-track{
+    position:relative; margin: 6px 0 8px; padding-left:20px; border-left:2px dashed var(--line);
+  }
+  .timeline-track .card-item{ position:relative; }
+  .timeline-track .card-item::before{
+    content:""; position:absolute; left:-26px; top:50%; transform:translateY(-50%);
+    width:10px; height:10px; border-radius:50%; background:var(--lavender);
+  }
+
+  /* Final screen */
+  .bloom-wrap{ display:flex; flex-direction:column; align-items:center; margin: 6px 0 20px; }
+  .result-title{ font-size:1rem; color:var(--ink-soft); margin-bottom:2px; }
+  .result-style{ font-size:1.7rem; color:var(--sage-deep); margin:0 0 18px; text-align:center; }
+  .bars{ display:flex; flex-direction:column; gap:10px; margin: 18px 0 8px; }
+  .bar-row{ display:flex; align-items:center; gap:10px; }
+  .bar-label{ width:150px; font-size:0.82rem; color:var(--ink-soft); flex-shrink:0; }
+  .bar-track{ flex:1; height:10px; background:var(--line); border-radius:99px; overflow:hidden; }
+  .bar-fill{ height:100%; border-radius:99px; width:0%; background: linear-gradient(90deg, var(--sage), var(--lavender)); transition: width 1s var(--ease); }
+  .bar-pct{ width:38px; text-align:right; font-size:0.8rem; color:var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+  .journal{
+    background: var(--surface-tint); border:1px solid var(--line); border-radius:14px;
+    padding:20px; margin-top:22px; line-height:1.65; font-size:0.96rem;
+  }
+  .journal h3{ margin-top:0; font-size:1.05rem; color:var(--sage-deep); }
+  .disclaimer{
+    font-size:0.76rem; color:var(--ink-soft); margin-top:18px; line-height:1.5;
+    border-top:1px solid var(--line); padding-top:14px;
+  }
+
+  footer.app-footer{ text-align:center; margin-top:auto; padding-top:36px; font-size:0.76rem; color:var(--ink-soft); }
+
+  @media (max-width:480px){
+    .app{ padding:18px 14px 60px; }
+    .start-title{ font-size:1.7rem; }
+    .card{ padding:20px; }
+    .bar-label{ width:110px; font-size:0.74rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="orb o1" aria-hidden="true"></div>
+<div class="orb o2" aria-hidden="true"></div>
+
+<div class="app">
+
+  <div class="progress-wrap" id="progressWrap" style="display:none;">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">Step 1 of 4</div>
+  </div>
+
+  <!-- START SCREEN -->
+  <section class="screen active" id="screen-start" aria-labelledby="startHeading">
+    <div class="card">
+      <div class="eyebrow">Cognitive Pattern Explorer</div>
+      <h1 class="start-title" id="startHeading">A calm look at how you think.</h1>
+      <p class="start-sub">This is a short, reflective exploration &mdash; not a test. You'll move through a few scenarios and sorting exercises, and end with a personal reflection on patterns you may recognise in your own thinking. Nothing here is a diagnosis.</p>
+
+      <div class="eyebrow" style="margin-bottom:10px;">Choose your pace</div>
+      <div class="mode-row" role="radiogroup" aria-label="Choose your pace">
+        <button type="button" class="mode-btn selected" data-mode="calm" role="radio" aria-checked="true">
+          <strong>Calm Mode</strong>
+          <span>Slower animations, softer tones. For an unhurried session.</span>
+        </button>
+        <button type="button" class="mode-btn" data-mode="stress" role="radio" aria-checked="false">
+          <strong>Stress Mode</strong>
+          <span>Quicker pace, warmer palette. For when time feels short.</span>
+        </button>
+      </div>
+
+      <button class="primary" id="btnStart">Begin the exploration</button>
+    </div>
+  </section>
+
+  <!-- CHAPTER 1 -->
+  <section class="screen" id="screen-ch1" aria-labelledby="ch1Heading">
+    <div class="card">
+      <div class="chapter-eyebrow">Chapter 1</div>
+      <h2 class="chapter-title" id="ch1Heading">Discover Your Thinking Style</h2>
+      <p class="chapter-intro">Read each moment and choose the response that feels most like you &mdash; not the one that sounds best.</p>
+      <div class="sub-progress" id="ch1SubProgress" aria-hidden="true"></div>
+      <div id="ch1Body"></div>
+    </div>
+  </section>
+
+  <!-- CHAPTER 2 -->
+  <section class="screen" id="screen-ch2" aria-labelledby="ch2Heading">
+    <div class="card">
+      <div class="chapter-eyebrow">Chapter 2</div>
+      <h2 class="chapter-title" id="ch2Heading">Choose Your Priorities</h2>
+      <p class="chapter-intro">Drag to reorder &mdash; place what matters <em>most</em> to you when deciding something important at the top. On a keyboard, use the up/down buttons or arrow keys after focusing a card.</p>
+      <ul class="sortable-list" id="ch2List" aria-label="Priority cards, reorder by importance"></ul>
+      <div class="btn-row">
+        <button class="ghost" id="ch2Back">Back</button>
+        <button class="primary" id="ch2Next">Continue</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHAPTER 3 -->
+  <section class="screen" id="screen-ch3" aria-labelledby="ch3Heading">
+    <div class="card">
+      <div class="chapter-eyebrow">Chapter 3</div>
+      <h2 class="chapter-title" id="ch3Heading">Map Your Thinking</h2>
+      <p class="chapter-intro">Arrange these steps into the order you actually tend to move through when facing a real decision &mdash; first thing you do at the top.</p>
+      <div class="timeline-track">
+        <ul class="sortable-list" id="ch3List" aria-label="Decision process steps, reorder by sequence"></ul>
+      </div>
+      <div class="btn-row">
+        <button class="ghost" id="ch3Back">Back</button>
+        <button class="primary" id="ch3Next">See my reflection</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL -->
+  <section class="screen" id="screen-final" aria-labelledby="finalHeading">
+    <div class="card">
+      <div class="chapter-eyebrow">Final Reflection</div>
+      <h2 class="chapter-title" id="finalHeading">Your Reflection Journal</h2>
+
+      <div class="bloom-wrap">
+        <div id="bloomSvgHolder"></div>
+        <div class="result-title">Your most present pattern right now</div>
+        <div class="result-style" id="resultStyleName">&mdash;</div>
+      </div>
+
+      <div class="bars" id="bars"></div>
+
+      <div class="journal" id="journalText"></div>
+
+      <div class="disclaimer">
+        This reflection is educational and exploratory only. It is not a psychological assessment, diagnosis, or clinical tool, and thinking patterns shift with context, mood, and time. If you're curious to understand your thinking or wellbeing more deeply, a conversation with a qualified professional is a better place to start than any self-guided app.
+      </div>
+
+      <div class="btn-row">
+        <button class="ghost" id="btnRestart">Start over</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="app-footer">Cognitive Pattern Explorer &middot; a self-reflection exercise, not a test</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------------------------------------------------
+     DATA
+  --------------------------------------------------------- */
+  var TENDENCIES = {
+    analytical:   { name: "Analytical Thinker" },
+    emotional:    { name: "Emotional Intuitive" },
+    overthinking: { name: "Overthinking Loop Style" },
+    actionFirst:  { name: "Action-First Decision Maker" },
+    balanced:     { name: "Balanced Reflective Thinker" }
+  };
+
+  var JOURNAL_COPY = {
+    analytical: {
+      headline: "You tend to reach for structure first.",
+      body: "When something matters, you often look for the underlying pattern before you look for the feeling. Breaking a problem into parts, comparing options, and wanting evidence before committing &mdash; these show up often in how you approached the scenarios today. This suggests a mind that trusts clarity over instinct, which serves you well in complex or high-stakes situations. It can occasionally mean you delay a decision waiting for more certainty than the situation actually needs."
+    },
+    emotional: {
+      headline: "You tend to think through feeling.",
+      body: "Your responses today often leaned toward what felt right in the moment rather than what could be proven on paper. This suggests you read situations &mdash; and people &mdash; quickly, and that emotional information isn't noise to you, it's data. This is a real strength in relationships and ambiguous situations where numbers don't tell the whole story. It can sometimes mean a strong mood colors a decision more than you'd like in hindsight."
+    },
+    overthinking: {
+      headline: "You often revisit a decision more than once.",
+      body: "The pattern that showed up most today was a tendency to circle back &mdash; reconsidering, checking a choice again, weighing it from another angle even after you've technically decided. This suggests real thoroughness and care about getting things right. The trade-off it can bring is that closure sometimes feels harder to reach than it needs to, and energy gets spent revisiting rather than moving forward."
+    },
+    actionFirst: {
+      headline: "You tend to move before you deliberate at length.",
+      body: "Today's choices often favored doing something over analysing everything first. This suggests comfort with uncertainty and a bias toward momentum &mdash; you'd usually rather adjust course after starting than plan every step beforehand. That's a genuine advantage when speed matters. It can sometimes mean details or downstream consequences get less attention than they deserve."
+    },
+    balanced: {
+      headline: "You tend to draw from more than one mode at once.",
+      body: "Your responses today didn't lean heavily toward any single extreme &mdash; you moved between logic, instinct, and action depending on what the moment called for. This suggests flexibility: an ability to adapt your thinking style to the situation rather than applying the same approach everywhere. The trade-off can be a style that's harder to predict, even for yourself, in a true crunch."
+    }
+  };
+
+  var SCENARIOS = [
+    {
+      id: "s1",
+      text: "A close friend asks for your advice on a big decision they need to make by tomorrow. Your first instinct is to...",
+      options: [
+        { label: "Ask them to walk you through the facts, then map out the pros and cons together.", scores: { analytical: 3 } },
+        { label: "Ask how it feels when they imagine each option, and trust that read.", scores: { emotional: 3 } },
+        { label: "Start listing every possible outcome, including ones that probably won't happen.", scores: { overthinking: 3 } },
+        { label: "Tell them what you'd do and encourage them to just decide and move on.", scores: { actionFirst: 3 } }
+      ]
+    },
+    {
+      id: "s2",
+      text: "You receive unexpected, slightly critical feedback on something you made. In the next hour, you're most likely to...",
+      options: [
+        { label: "Reread it a few times, trying to find exactly what's true in it before reacting.", scores: { analytical: 2, overthinking: 1 } },
+        { label: "Notice the sting first, and let that shape how you read the rest of the message.", scores: { emotional: 3 } },
+        { label: "Replay the interaction repeatedly, imagining different ways you could respond.", scores: { overthinking: 3 } },
+        { label: "Make a quick fix and move on to the next task without dwelling on it.", scores: { actionFirst: 3 } }
+      ]
+    },
+    {
+      id: "s3",
+      text: "You're choosing between two job offers with a short deadline. What actually determines your choice?",
+      options: [
+        { label: "A comparison sheet of salary, growth, and logistics, weighed carefully.", scores: { analytical: 3 } },
+        { label: "Which one you felt more excited about the moment you got the offer.", scores: { emotional: 3 } },
+        { label: "You keep switching your answer depending on who you last talked to.", scores: { overthinking: 3 } },
+        { label: "You pick the one that lets you start soonest and adjust as you go.", scores: { actionFirst: 2, balanced: 1 } }
+      ]
+    },
+    {
+      id: "s4",
+      text: "Plans with a group fall apart at the last minute. Your immediate reaction is to...",
+      options: [
+        { label: "Figure out what went wrong and whether it could be prevented next time.", scores: { analytical: 3 } },
+        { label: "Feel the disappointment fully before thinking about what's next.", scores: { emotional: 3 } },
+        { label: "Wonder if it was somehow your fault, running through the timeline again.", scores: { overthinking: 3 } },
+        { label: "Immediately suggest an alternative plan so the day isn't wasted.", scores: { actionFirst: 3 } }
+      ]
+    },
+    {
+      id: "s5",
+      text: "When you're facing a genuinely hard, ambiguous problem with no clear right answer, you usually...",
+      options: [
+        { label: "Break it into smaller sub-questions you can actually answer.", scores: { analytical: 3 } },
+        { label: "Sit with it and wait for a gut sense of the right direction.", scores: { emotional: 2, balanced: 1 } },
+        { label: "Feel a bit stuck in a loop, considering angle after angle.", scores: { overthinking: 3 } },
+        { label: "Pick a reasonable direction and adjust once you have more information.", scores: { actionFirst: 2, balanced: 1 } }
+      ]
+    }
+  ];
+
+  // Chapter 2: priority cards. Rank position (0 = top/most important) contributes weighted points.
+  var PRIORITY_CARDS = [
+    { id:"p_evidence", title:"Having enough evidence", sub:"Facts and data before committing", tendency:"analytical" },
+    { id:"p_gut",      title:"How it feels", sub:"Trusting an instinctive read", tendency:"emotional" },
+    { id:"p_certainty",title:"Being fully certain", sub:"Wanting no doubt left before deciding", tendency:"overthinking" },
+    { id:"p_speed",     title:"Moving quickly", sub:"Getting started over getting it perfect", tendency:"actionFirst" },
+    { id:"p_people",    title:"How others are affected", sub:"Weighing impact on people involved", tendency:"emotional" },
+    { id:"p_flex",      title:"Staying adaptable", sub:"Keeping options open to shift later", tendency:"balanced" }
+  ];
+
+  // Chapter 3: decision-process steps arranged on a timeline. Earlier position = stronger signal.
+  var TIMELINE_CARDS = [
+    { id:"t_gather", title:"Gather all the data", sub:"Research before anything else", tendency:"analytical" },
+    { id:"t_feel",   title:"Notice how it feels", sub:"Check in with your gut reaction", tendency:"emotional" },
+    { id:"t_recheck",title:"Reconsider it again", sub:"Go back over the choice more than once", tendency:"overthinking" },
+    { id:"t_act",    title:"Just start", sub:"Take the first concrete step", tendency:"actionFirst" },
+    { id:"t_reflect",title:"Reflect afterward", sub:"Review the outcome once it's done", tendency:"balanced" }
+  ];
+
+  /* ---------------------------------------------------------
+     STATE
+  --------------------------------------------------------- */
+  var state = {
+    mode: "calm",
+    step: 0, // 0 start, 1 ch1, 2 ch2, 3 ch3, 4 final
+    ch1Index: 0,
+    ch1Answers: [], // array of {id, tendency scores}
+    scores: { analytical:0, emotional:0, overthinking:0, actionFirst:0, balanced:0 }
+  };
+
+  var STEP_LABELS = ["Start","Step 1 of 4","Step 2 of 4","Step 3 of 4","Step 4 of 4"];
+  var STEP_PCT = [0, 20, 50, 78, 100];
+
+  /* ---------------------------------------------------------
+     HELPERS
+  --------------------------------------------------------- */
+  function $(sel, root){ return (root||document).querySelector(sel); }
+  function $all(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
+
+  function addScore(tendency, amount){
+    if(state.scores.hasOwnProperty(tendency)){
+      state.scores[tendency] += amount;
+    }
+  }
+
+  function showScreen(id){
+    $all(".screen").forEach(function(s){ s.classList.remove("active"); });
+    $("#" + id).classList.add("active");
+    $("#" + id).setAttribute("tabindex","-1");
+    $("#" + id).focus({preventScroll:false});
+    window.scrollTo({ top: 0, behavior: (prefersReducedMotion() ? "auto":"smooth") });
+  }
+
+  function prefersReducedMotion(){
+    return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function updateProgress(){
+    var wrap = $("#progressWrap");
+    if(state.step === 0){ wrap.style.display = "none"; return; }
+    wrap.style.display = "flex";
+    $("#progressFill").style.width = STEP_PCT[state.step] + "%";
+    $("#progressLabel").textContent = STEP_LABELS[state.step];
+  }
+
+  /* ---------------------------------------------------------
+     START SCREEN
+  --------------------------------------------------------- */
+  $all(".mode-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      $all(".mode-btn").forEach(function(b){
+        b.classList.remove("selected");
+        b.setAttribute("aria-checked","false");
+      });
+      btn.classList.add("selected");
+      btn.setAttribute("aria-checked","true");
+      state.mode = btn.getAttribute("data-mode");
+      document.body.classList.toggle("stress-mode", state.mode === "stress");
+    });
+  });
+
+  $("#btnStart").addEventListener("click", function(){
+    state.step = 1;
+    updateProgress();
+    renderCh1();
+    showScreen("screen-ch1");
+  });
+
+  /* ---------------------------------------------------------
+     CHAPTER 1: Scenarios
+  --------------------------------------------------------- */
+  function renderCh1SubProgress(){
+    var wrap = $("#ch1SubProgress");
+    wrap.innerHTML = "";
+    SCENARIOS.forEach(function(_, i){
+      var dot = document.createElement("div");
+      dot.className = "sub-dot" + (i < state.ch1Index ? " done" : (i === state.ch1Index ? " current" : ""));
+      wrap.appendChild(dot);
+    });
+  }
+
+  function renderCh1(){
+    renderCh1SubProgress();
+    var body = $("#ch1Body");
+    body.innerHTML = "";
+
+    if(state.ch1Index >= SCENARIOS.length){
+      // move on automatically
+      state.step = 2;
+      updateProgress();
+      renderCh2();
+      showScreen("screen-ch2");
+      return;
+    }
+
+    var scenario = SCENARIOS[state.ch1Index];
+
+    var p = document.createElement("p");
+    p.className = "scenario-text";
+    p.textContent = scenario.text;
+    body.appendChild(p);
+
+    var optWrap = document.createElement("div");
+    optWrap.className = "options";
+    optWrap.setAttribute("role","group");
+    optWrap.setAttribute("aria-label","Choose one response");
+
+    scenario.options.forEach(function(opt, idx){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "option-btn";
+      b.textContent = opt.label;
+      b.addEventListener("click", function(){
+        Object.keys(opt.scores).forEach(function(t){ addScore(t, opt.scores[t]); });
+        state.ch1Answers.push({ scenario: scenario.id, choice: idx });
+        state.ch1Index += 1;
+        renderCh1();
+      });
+      optWrap.appendChild(b);
+    });
+
+    body.appendChild(optWrap);
+  }
+
+  /* ---------------------------------------------------------
+     REUSABLE SORTABLE LIST COMPONENT
+     (native HTML5 drag-and-drop + touch fallback + keyboard)
+  --------------------------------------------------------- */
+  function createSortable(listEl, items, opts){
+    // items: array of {id, title, sub, tendency}
+    // opts.showRank: boolean, opts.itemPrefix for aria labels
+    listEl.innerHTML = "";
+    var order = items.slice(); // working copy, order matters
+
+    function render(){
+      listEl.innerHTML = "";
+      order.forEach(function(item, index){
+        var li = document.createElement("li");
+        li.className = "card-item";
+        li.setAttribute("draggable","true");
+        li.setAttribute("data-id", item.id);
+        li.setAttribute("tabindex","0");
+        li.setAttribute("role","listitem");
+        li.setAttribute("aria-label", (index+1) + " of " + order.length + ": " + item.title + ". Use arrow keys or the buttons to reorder.");
+
+        var rank = document.createElement("div");
+        rank.className = "rank-num";
+        rank.textContent = index + 1;
+        li.appendChild(rank);
+
+        var textWrap = document.createElement("div");
+        textWrap.className = "card-item-text";
+        var strong = document.createElement("strong");
+        strong.textContent = item.title;
+        var span = document.createElement("span");
+        span.textContent = item.sub;
+        textWrap.appendChild(strong);
+        textWrap.appendChild(span);
+        li.appendChild(textWrap);
+
+        var grip = document.createElement("div");
+        grip.className = "grip";
+        grip.setAttribute("aria-hidden","true");
+        grip.textContent = "⠿";
+        li.appendChild(grip);
+
+        var kbd = document.createElement("div");
+        kbd.className = "kbd-controls";
+        var up = document.createElement("button");
+        up.type = "button";
+        up.textContent = "▲";
+        up.setAttribute("aria-label","Move " + item.title + " up");
+        up.addEventListener("click", function(e){
+          e.stopPropagation();
+          moveItem(index, index - 1);
+        });
+        var down = document.createElement("button");
+        down.type = "button";
+        down.textContent = "▼";
+        down.setAttribute("aria-label","Move " + item.title + " down");
+        down.addEventListener("click", function(e){
+          e.stopPropagation();
+          moveItem(index, index + 1);
+        });
+        kbd.appendChild(up);
+        kbd.appendChild(down);
+        li.appendChild(kbd);
+
+        // Keyboard reordering on the li itself
+        li.addEventListener("keydown", function(e){
+          if(e.key === "ArrowUp"){ e.preventDefault(); moveItem(index, index - 1, li); }
+          else if(e.key === "ArrowDown"){ e.preventDefault(); moveItem(index, index + 1, li); }
+        });
+
+        // Drag events (desktop)
+        li.addEventListener("dragstart", function(e){
+          li.classList.add("dragging");
+          e.dataTransfer.effectAllowed = "move";
+          try{ e.dataTransfer.setData("text/plain", item.id); }catch(err){}
+        });
+        li.addEventListener("dragend", function(){
+          li.classList.remove("dragging");
+          $all(".card-item", listEl).forEach(function(el){ el.classList.remove("drag-over"); });
+        });
+        li.addEventListener("dragover", function(e){
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          li.classList.add("drag-over");
+        });
+        li.addEventListener("dragleave", function(){
+          li.classList.remove("drag-over");
+        });
+        li.addEventListener("drop", function(e){
+          e.preventDefault();
+          li.classList.remove("drag-over");
+          var draggingEl = $(".dragging", listEl);
+          if(!draggingEl) return;
+          var fromId = draggingEl.getAttribute("data-id");
+          var toId = item.id;
+          if(fromId === toId) return;
+          var fromIdx = order.findIndex(function(o){ return o.id === fromId; });
+          var toIdx = order.findIndex(function(o){ return o.id === toId; });
+          moveItem(fromIdx, toIdx);
+        });
+
+        // Touch fallback (simple long-press-free reorder: touchstart+move+end using swap on overlap)
+        var touchStartY = null;
+        li.addEventListener("touchstart", function(e){
+          touchStartY = e.touches[0].clientY;
+          li.classList.add("dragging");
+        }, { passive:true });
+        li.addEventListener("touchmove", function(e){
+          if(touchStartY === null) return;
+          var touchY = e.touches[0].clientY;
+          var elUnder = document.elementFromPoint(e.touches[0].clientX, touchY);
+          if(!elUnder) return;
+          var overCard = elUnder.closest ? elUnder.closest(".card-item") : null;
+          if(overCard && overCard !== li && listEl.contains(overCard)){
+            var fromIdx = order.findIndex(function(o){ return o.id === item.id; });
+            var toIdx = order.findIndex(function(o){ return o.id === overCard.getAttribute("data-id"); });
+            if(fromIdx !== -1 && toIdx !== -1){
+              moveItem(fromIdx, toIdx, li, true);
+            }
+          }
+        }, { passive:true });
+        li.addEventListener("touchend", function(){
+          touchStartY = null;
+          li.classList.remove("dragging");
+        });
+
+        listEl.appendChild(li);
+      });
+    }
+
+    function moveItem(fromIdx, toIdx, focusEl, skipFocusRestore){
+      if(toIdx < 0 || toIdx >= order.length || fromIdx === toIdx || fromIdx < 0) return;
+      var moved = order.splice(fromIdx, 1)[0];
+      order.splice(toIdx, 0, moved);
+      render();
+      if(!skipFocusRestore){
+        var newEl = listEl.querySelector('[data-id="' + moved.id + '"]');
+        if(newEl) newEl.focus();
+      }
+      if(opts && typeof opts.onChange === "function") opts.onChange(order);
+    }
+
+    render();
+    if(opts && typeof opts.onChange === "function") opts.onChange(order);
+
+    return {
+      getOrder: function(){ return order.slice(); }
+    };
+  }
+
+  /* ---------------------------------------------------------
+     CHAPTER 2: Priorities
+  --------------------------------------------------------- */
+  var ch2Sortable = null;
+  function renderCh2(){
+    ch2Sortable = createSortable($("#ch2List"), PRIORITY_CARDS, {});
+  }
+  $("#ch2Back").addEventListener("click", function(){
+    state.step = 1;
+    updateProgress();
+    showScreen("screen-ch1");
+  });
+  $("#ch2Next").addEventListener("click", function(){
+    var order = ch2Sortable.getOrder();
+    var n = order.length;
+    order.forEach(function(item, idx){
+      // top rank gets more weight, tapering to ~0.3
+      var weight = Math.max(0.3, (n - idx) / n) * 2;
+      addScore(item.tendency, weight);
+    });
+    state.step = 3;
+    updateProgress();
+    renderCh3();
+    showScreen("screen-ch3");
+  });
+
+  /* ---------------------------------------------------------
+     CHAPTER 3: Timeline mapping
+  --------------------------------------------------------- */
+  var ch3Sortable = null;
+  function renderCh3(){
+    ch3Sortable = createSortable($("#ch3List"), TIMELINE_CARDS, {});
+  }
+  $("#ch3Back").addEventListener("click", function(){
+    state.step = 2;
+    updateProgress();
+    showScreen("screen-ch2");
+  });
+  $("#ch3Next").addEventListener("click", function(){
+    var order = ch3Sortable.getOrder();
+    var n = order.length;
+    order.forEach(function(item, idx){
+      var weight = Math.max(0.3, (n - idx) / n) * 2.4;
+      addScore(item.tendency, weight);
+    });
+    state.step = 4;
+    updateProgress();
+    renderFinal();
+    showScreen("screen-final");
+  });
+
+  /* ---------------------------------------------------------
+     FINAL SCREEN
+  --------------------------------------------------------- */
+  function computePercentages(){
+    var total = 0;
+    Object.keys(state.scores).forEach(function(k){ total += Math.max(0, state.scores[k]); });
+    var pct = {};
+    Object.keys(state.scores).forEach(function(k){
+      pct[k] = total > 0 ? (Math.max(0, state.scores[k]) / total) * 100 : (100 / Object.keys(state.scores).length);
+    });
+    return pct;
+  }
+
+  function topStyles(pct){
+    var keys = Object.keys(pct).sort(function(a,b){ return pct[b] - pct[a]; });
+    return keys;
+  }
+
+  function buildBloomSVG(pct, orderKeys){
+    // 5 petals radiating from center, length scaled by percentage
+    var size = 220;
+    var cx = size/2, cy = size/2;
+    var maxLen = 88;
+    var colors = ["#4b6455","#8d80ac","#c98a63","#5c7f9a","#7a9e7e"];
+    var n = orderKeys.length;
+    var svgParts = [];
+    svgParts.push('<svg viewBox="0 0 ' + size + ' ' + size + '" width="220" height="220" role="img" aria-label="Petal chart showing the relative strength of each thinking style">');
+    svgParts.push('<circle cx="' + cx + '" cy="' + cy + '" r="14" fill="#ffffff" stroke="#d7ddd6" stroke-width="1"></circle>');
+    orderKeys.forEach(function(key, i){
+      var angle = (Math.PI * 2 * i / n) - Math.PI/2;
+      var len = 22 + (pct[key]/100) * maxLen;
+      var tipX = cx + Math.cos(angle) * len;
+      var tipY = cy + Math.sin(angle) * len;
+      var perp = angle + Math.PI/2;
+      var w = 12;
+      var b1x = cx + Math.cos(perp) * w * 0.4;
+      var b1y = cy + Math.sin(perp) * w * 0.4;
+      var b2x = cx - Math.cos(perp) * w * 0.4;
+      var b2y = cy - Math.sin(perp) * w * 0.4;
+      var color = colors[i % colors.length];
+      svgParts.push('<path d="M ' + b1x.toFixed(1) + ' ' + b1y.toFixed(1) + ' Q ' + tipX.toFixed(1) + ' ' + tipY.toFixed(1) + ' ' + b2x.toFixed(1) + ' ' + b2y.toFixed(1) + ' Q ' + cx + ' ' + cy + ' ' + b1x.toFixed(1) + ' ' + b1y.toFixed(1) + ' Z" fill="' + color + '" opacity="0.85"></path>');
+    });
+    svgParts.push('</svg>');
+    return svgParts.join("");
+  }
+
+  function renderFinal(){
+    var pct = computePercentages();
+    var order = topStyles(pct);
+    var top = order[0];
+
+    $("#bloomSvgHolder").innerHTML = buildBloomSVG(pct, Object.keys(TENDENCIES));
+    $("#resultStyleName").textContent = TENDENCIES[top].name;
+
+    var barsWrap = $("#bars");
+    barsWrap.innerHTML = "";
+    order.forEach(function(key){
+      var row = document.createElement("div");
+      row.className = "bar-row";
+      var label = document.createElement("div");
+      label.className = "bar-label";
+      label.textContent = TENDENCIES[key].name;
+      var track = document.createElement("div");
+      track.className = "bar-track";
+      var fill = document.createElement("div");
+      fill.className = "bar-fill";
+      track.appendChild(fill);
+      var pctEl = document.createElement("div");
+      pctEl.className = "bar-pct";
+      pctEl.textContent = Math.round(pct[key]) + "%";
+      row.appendChild(label);
+      row.appendChild(track);
+      row.appendChild(pctEl);
+      barsWrap.appendChild(row);
+      // animate after paint
+      window.setTimeout(function(){ fill.style.width = pct[key] + "%"; }, 60);
+    });
+
+    var journal = $("#journalText");
+    var second = order[1];
+    var copyTop = JOURNAL_COPY[top];
+    var copySecond = JOURNAL_COPY[second];
+    journal.innerHTML =
+      "<h3>" + copyTop.headline + "</h3>" +
+      "<p>" + copyTop.body + "</p>" +
+      "<p>A secondary thread also showed up in how you moved through today's chapters: <strong>" + TENDENCIES[second].name + "</strong>. " + copySecond.body + "</p>" +
+      "<p>Keep in mind this reading reflects the choices you made in this one session &mdash; on a different day, under different pressure, some of this could shift. That's normal, and part of the point.</p>";
+  }
+
+  $("#btnRestart").addEventListener("click", function(){
+    state = {
+      mode: state.mode,
+      step: 0,
+      ch1Index: 0,
+      ch1Answers: [],
+      scores: { analytical:0, emotional:0, overthinking:0, actionFirst:0, balanced:0 }
+    };
+    updateProgress();
+    showScreen("screen-start");
+  });
+
+  /* ---------------------------------------------------------
+     INIT
+  --------------------------------------------------------- */
+  updateProgress();
+})();
+</script>
+</body>
+</html>
