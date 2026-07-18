@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sheetwork — PDF Splitter &amp; Merger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --paper:#F6F5F1;
+  --paper-raised:#FFFFFF;
+  --ink:#1B1D22;
+  --ink-soft:#5B5E68;
+  --line:#DAD8D0;
+  --line-strong:#B9B6AC;
+  --blue:#2451E8;
+  --blue-deep:#173AB0;
+  --amber:#E8A324;
+  --red:#D64545;
+  --green:#1E8E5A;
+  --radius:3px;
+  --mono:'IBM Plex Mono', monospace;
+  --display:'Space Grotesk', sans-serif;
+  --body:'Inter', sans-serif;
+  --shadow: 0 1px 2px rgba(27,29,34,.06), 0 6px 20px rgba(27,29,34,.05);
+}
+[data-theme="dark"]{
+  --paper:#15161A;
+  --paper-raised:#1D1F25;
+  --ink:#EDEDEC;
+  --ink-soft:#9A9CA6;
+  --line:#2C2E36;
+  --line-strong:#3E4150;
+  --blue:#5B82FF;
+  --blue-deep:#8FA8FF;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  min-height:100vh;
+  transition:background .25s ease,color .25s ease;
+  -webkit-font-smoothing:antialiased;
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+}
+::selection{background:var(--blue); color:#fff;}
+a{color:var(--blue);}
+button{font-family:var(--body);}
+:focus-visible{outline:2px solid var(--blue); outline-offset:2px;}
+
+/* ============ REGISTRATION MARKS (signature) ============ */
+.reg-mark{position:fixed; width:22px; height:22px; pointer-events:none; z-index:5; opacity:.5;}
+.reg-mark::before,.reg-mark::after{content:"";position:absolute;background:var(--ink-soft);}
+.reg-mark::before{top:50%;left:0;right:0;height:1px;transform:translateY(-50%);}
+.reg-mark::after{left:50%;top:0;bottom:0;width:1px;transform:translateX(-50%);}
+.reg-tl{top:14px;left:14px;} .reg-tr{top:14px;right:14px;} .reg-bl{bottom:14px;left:14px;} .reg-br{bottom:14px;right:14px;}
+
+/* ============ SHELL ============ */
+.shell{max-width:1240px; margin:0 auto; padding:48px 32px 96px;}
+.topbar{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  border-bottom:1px solid var(--line); padding-bottom:20px; margin-bottom:28px;
+  gap:20px; flex-wrap:wrap;
+}
+.brand{display:flex; align-items:baseline; gap:12px;}
+.brand-mark{
+  font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--ink-soft);
+  border:1px solid var(--line-strong); border-radius:var(--radius); padding:3px 6px;
+}
+.brand h1{
+  font-family:var(--display); font-weight:700; font-size:26px; margin:0; letter-spacing:-0.01em;
+}
+.brand .tag{font-family:var(--mono); font-size:12px; color:var(--ink-soft); margin-top:2px;}
+.topbar-actions{display:flex; align-items:center; gap:10px;}
+.icon-btn{
+  width:38px; height:38px; border-radius:var(--radius); border:1px solid var(--line);
+  background:var(--paper-raised); display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:border-color .15s, transform .1s;
+}
+.icon-btn:hover{border-color:var(--line-strong);}
+.icon-btn:active{transform:scale(.94);}
+.icon-btn svg{width:17px;height:17px; stroke:var(--ink); fill:none; stroke-width:1.6;}
+
+/* ============ TABS ============ */
+.mode-tabs{display:flex; gap:6px; margin-bottom:32px;}
+.mode-tab{
+  font-family:var(--mono); font-size:13px; letter-spacing:.03em; padding:11px 20px;
+  border:1px solid var(--line); background:var(--paper-raised); color:var(--ink-soft);
+  cursor:pointer; border-radius:var(--radius); display:flex; align-items:center; gap:8px;
+  transition:all .15s;
+}
+.mode-tab .num{font-size:10px; opacity:.6;}
+.mode-tab.active{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+[data-theme="dark"] .mode-tab.active{background:var(--blue); border-color:var(--blue); color:#0d1020;}
+.mode-tab:hover:not(.active){border-color:var(--line-strong); color:var(--ink);}
+
+/* ============ LAYOUT: main + spec sidebar ============ */
+.workspace{display:grid; grid-template-columns:1fr 300px; gap:28px; align-items:start;}
+@media (max-width:960px){.workspace{grid-template-columns:1fr;}}
+
+.panel{
+  background:var(--paper-raised); border:1px solid var(--line); border-radius:6px;
+  padding:28px; box-shadow:var(--shadow);
+}
+.panel + .panel{margin-top:20px;}
+.panel-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;}
+.panel-title{font-family:var(--display); font-weight:600; font-size:17px; margin:0;}
+.panel-sub{font-family:var(--mono); font-size:11px; color:var(--ink-soft); margin-top:2px;}
+
+/* ============ DROPZONE ============ */
+.dropzone{
+  border:1.5px dashed var(--line-strong); border-radius:6px; padding:44px 24px;
+  text-align:center; cursor:pointer; transition:border-color .15s, background .15s;
+  position:relative;
+}
+.dropzone.drag{border-color:var(--blue); background:rgba(36,81,232,0.06);}
+.dropzone svg{width:34px;height:34px; stroke:var(--ink-soft); fill:none; stroke-width:1.4; margin-bottom:10px;}
+.dropzone h3{font-family:var(--display); font-weight:600; margin:0 0 6px; font-size:16px;}
+.dropzone p{font-family:var(--mono); font-size:12px; color:var(--ink-soft); margin:0;}
+.dropzone input{display:none;}
+
+/* ============ PAGE GRID (thumbnails) ============ */
+.page-grid{
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(108px,1fr));
+  gap:14px; margin-top:22px;
+}
+.page-card{
+  border:1.5px solid var(--line); border-radius:4px; background:var(--paper);
+  cursor:pointer; user-select:none; position:relative; transition:border-color .12s, transform .08s;
+  overflow:hidden;
+}
+.page-card:hover{border-color:var(--line-strong);}
+.page-card.selected{border-color:var(--blue); box-shadow:0 0 0 2px rgba(36,81,232,.18);}
+.page-card.range-marked{border-color:var(--amber);}
+.page-card .thumb-wrap{
+  aspect-ratio:3/4; display:flex; align-items:center; justify-content:center; background:#fff;
+  overflow:hidden;
+}
+[data-theme="dark"] .page-card .thumb-wrap{background:#2A2C33;}
+.page-card canvas,.page-card img{width:100%; height:100%; object-fit:contain; display:block; transition:transform .2s;}
+.page-card .pg-num{
+  font-family:var(--mono); font-size:10.5px; text-align:center; padding:5px 0;
+  color:var(--ink-soft); border-top:1px solid var(--line); background:var(--paper-raised);
+}
+.page-card .chk{
+  position:absolute; top:5px; left:5px; width:16px; height:16px; border-radius:3px;
+  border:1.4px solid var(--line-strong); background:var(--paper-raised);
+  display:flex; align-items:center; justify-content:center; font-size:10px;
+}
+.page-card.selected .chk{background:var(--blue); border-color:var(--blue); color:#fff;}
+.page-card .rotate-badge{
+  position:absolute; top:5px; right:5px; width:16px; height:16px; border-radius:50%;
+  background:var(--amber); color:#1B1D22; font-size:9px; display:none;
+  align-items:center; justify-content:center; font-weight:700;
+}
+.page-card.rotated .rotate-badge{display:flex;}
+.page-card .del-x{
+  position:absolute; inset:0; background:rgba(214,69,69,.82); display:none;
+  align-items:center; justify-content:center; color:#fff; font-family:var(--mono); font-size:11px;
+}
+.page-card.marked-delete .del-x{display:flex;}
+.page-card.marked-delete .thumb-wrap{opacity:.35;}
+
+/* ============ TOOLBAR ROW ============ */
+.toolbar-row{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:18px;}
+.btn{
+  font-family:var(--mono); font-size:12.5px; letter-spacing:.02em; padding:9px 16px;
+  border-radius:var(--radius); border:1px solid var(--line-strong); background:var(--paper-raised);
+  color:var(--ink); cursor:pointer; display:inline-flex; align-items:center; gap:7px;
+  transition:all .13s;
+}
+.btn:hover{border-color:var(--ink); transform:translateY(-1px);}
+.btn:active{transform:translateY(0);}
+.btn:disabled{opacity:.4; cursor:not-allowed; transform:none;}
+.btn-primary{background:var(--blue); border-color:var(--blue); color:#fff;}
+.btn-primary:hover{background:var(--blue-deep); border-color:var(--blue-deep);}
+.btn-ghost{background:transparent; border-color:transparent; color:var(--ink-soft);}
+.btn-ghost:hover{color:var(--ink); border-color:var(--line);}
+.btn-danger{color:var(--red); border-color:var(--red);}
+.btn-danger:hover{background:var(--red); color:#fff;}
+.btn svg{width:14px;height:14px; stroke:currentColor; fill:none; stroke-width:1.8;}
+
+/* ============ SPLIT MODE CONTROLS ============ */
+.split-methods{display:grid; gap:10px; margin-bottom:6px;}
+.method{
+  border:1px solid var(--line); border-radius:6px; padding:14px 16px; cursor:pointer;
+  transition:border-color .15s, background .15s;
+}
+.method.active{border-color:var(--blue);}
+.method-head{display:flex; align-items:center; gap:10px;}
+.method-head input[type=radio]{accent-color:var(--blue); width:15px; height:15px;}
+.method-head label{font-family:var(--display); font-weight:600; font-size:14px; cursor:pointer;}
+.method-body{margin-top:10px; padding-left:25px; display:none;}
+.method.active .method-body{display:block;}
+.field-row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+.field{display:flex; flex-direction:column; gap:5px;}
+.field label{font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); letter-spacing:.03em;}
+input[type=text],input[type=number]{
+  font-family:var(--mono); font-size:13px; padding:8px 10px; border:1px solid var(--line-strong);
+  border-radius:4px; background:var(--paper); color:var(--ink); width:140px;
+}
+input[type=text].wide{width:100%; min-width:220px;}
+input:focus{border-color:var(--blue);}
+.hint{font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); margin-top:6px;}
+.error-text{font-family:var(--mono); font-size:11px; color:var(--red); margin-top:6px; display:none;}
+.error-text.show{display:block;}
+
+.range-list{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+.range-chip{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  border:1px solid var(--line); border-radius:4px; padding:8px 12px; font-family:var(--mono); font-size:12px;
+  background:var(--paper);
+}
+.range-chip .rc-label{color:var(--ink);}
+.range-chip .rc-meta{color:var(--ink-soft); font-size:11px;}
+.range-chip button{background:none; border:none; color:var(--ink-soft); cursor:pointer; font-size:14px; padding:2px 6px;}
+.range-chip button:hover{color:var(--red);}
+
+/* ============ MERGE FILE LIST ============ */
+.file-list{display:flex; flex-direction:column; gap:10px; margin-top:20px;}
+.file-row{
+  display:flex; align-items:center; gap:12px; border:1px solid var(--line); border-radius:6px;
+  padding:10px 12px; background:var(--paper); cursor:grab; transition:box-shadow .15s, border-color .15s;
+}
+.file-row.dragging{opacity:.4;}
+.file-row.drag-over{border-color:var(--blue);}
+.file-row:active{cursor:grabbing;}
+.file-row .grip{color:var(--line-strong); font-family:var(--mono); font-size:14px; letter-spacing:2px;}
+.file-row .fr-thumb{
+  width:36px; height:48px; background:#fff; border:1px solid var(--line); flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:2px;
+}
+.file-row .fr-thumb img,.file-row .fr-thumb canvas{width:100%;height:100%;object-fit:contain;}
+.file-row .fr-info{flex:1; min-width:0;}
+.file-row .fr-name{font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.file-row .fr-meta{font-family:var(--mono); font-size:11px; color:var(--ink-soft); margin-top:2px;}
+.file-row .fr-index{
+  font-family:var(--mono); font-size:11px; color:var(--ink-soft); width:22px; text-align:center;
+  border:1px solid var(--line); border-radius:3px; padding:2px 0; flex-shrink:0;
+}
+.file-row .fr-remove{background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:16px;padding:4px 6px;flex-shrink:0;}
+.file-row .fr-remove:hover{color:var(--red);}
+
+/* ============ SPEC SIDEBAR ============ */
+.spec-panel{position:sticky; top:24px;}
+.spec-panel h4{
+  font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--ink-soft);
+  margin:0 0 16px; text-transform:uppercase; display:flex; align-items:center; gap:8px;
+}
+.spec-panel h4::after{content:""; flex:1; height:1px; background:var(--line);}
+.spec-row{display:flex; justify-content:space-between; align-items:baseline; padding:9px 0; border-bottom:1px solid var(--line);}
+.spec-row:last-child{border-bottom:none;}
+.spec-row .k{font-family:var(--mono); font-size:11.5px; color:var(--ink-soft);}
+.spec-row .v{font-family:var(--display); font-weight:600; font-size:16px;}
+.spec-note{
+  font-family:var(--mono); font-size:11px; color:var(--ink-soft); line-height:1.6; margin-top:16px;
+  padding-top:16px; border-top:1px dashed var(--line);
+}
+.kbd{
+  font-family:var(--mono); font-size:10px; border:1px solid var(--line-strong); border-radius:3px;
+  padding:1px 5px; background:var(--paper);
+}
+
+/* ============ PROGRESS / TOAST ============ */
+.progress-overlay{
+  position:fixed; inset:0; background:rgba(21,22,26,.55); display:none;
+  align-items:center; justify-content:center; z-index:100; backdrop-filter:blur(2px);
+}
+.progress-overlay.show{display:flex;}
+.progress-card{
+  background:var(--paper-raised); border-radius:8px; padding:32px 40px; text-align:center;
+  min-width:280px; box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.spinner{
+  width:34px;height:34px; border:3px solid var(--line); border-top-color:var(--blue); border-radius:50%;
+  animation:spin .8s linear infinite; margin:0 auto 16px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.progress-card p{font-family:var(--mono); font-size:12.5px; margin:0; color:var(--ink-soft);}
+.progress-bar-track{height:4px; background:var(--line); border-radius:2px; margin-top:16px; overflow:hidden;}
+.progress-bar-fill{height:100%; width:0%; background:var(--blue); transition:width .2s ease;}
+
+.toast-stack{position:fixed; bottom:24px; right:24px; z-index:200; display:flex; flex-direction:column; gap:10px;}
+.toast{
+  font-family:var(--mono); font-size:12.5px; padding:12px 18px; border-radius:6px;
+  background:var(--ink); color:var(--paper); box-shadow:var(--shadow); display:flex; align-items:center; gap:10px;
+  animation:toast-in .25s ease; max-width:340px;
+}
+[data-theme="dark"] .toast{background:var(--paper-raised); border:1px solid var(--line);}
+.toast.error{border-left:3px solid var(--red);}
+.toast.success{border-left:3px solid var(--green);}
+@keyframes toast-in{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+
+.empty-state{text-align:center; padding:30px 10px; color:var(--ink-soft); font-family:var(--mono); font-size:12px;}
+
+.results-panel{display:none;}
+.results-panel.show{display:block;}
+.result-item{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  border:1px solid var(--line); border-radius:6px; padding:12px 16px; margin-bottom:10px; background:var(--paper);
+}
+.result-item .ri-name{font-weight:600; font-size:13.5px;}
+.result-item .ri-meta{font-family:var(--mono); font-size:11px; color:var(--ink-soft); margin-top:2px;}
+
+.sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0);}
+
+footer{
+  text-align:center; margin-top:60px; font-family:var(--mono); font-size:11px; color:var(--ink-soft);
+}
+</style>
+</head>
+<body>
+
+<div class="reg-mark reg-tl"></div>
+<div class="reg-mark reg-tr"></div>
+<div class="reg-mark reg-bl"></div>
+<div class="reg-mark reg-br"></div>
+
+<div class="shell">
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-mark">PDF/01</span>
+      <div>
+        <h1>Sheetwork</h1>
+        <div class="tag">split &amp; merge — runs entirely in your browser</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <svg id="themeIcon" viewBox="0 0 24 24"><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="4.5"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="mode-tabs" role="tablist" aria-label="Tool selection">
+    <button class="mode-tab active" id="tabSplit" role="tab" aria-selected="true">✂ Splitter <span class="num">01</span></button>
+    <button class="mode-tab" id="tabMerge" role="tab" aria-selected="false">⧉ Merger <span class="num">02</span></button>
+  </div>
+
+  <!-- ================= SPLITTER VIEW ================= -->
+  <div id="splitView" class="workspace">
+    <div class="main-col">
+      <div class="panel" id="splitUploadPanel">
+        <div class="panel-head">
+          <div>
+            <h3 class="panel-title">Source document</h3>
+            <div class="panel-sub">one PDF · client-side parsing</div>
+          </div>
+        </div>
+        <div class="dropzone" id="splitDropzone" tabindex="0" role="button" aria-label="Upload a PDF to split">
+          <svg viewBox="0 0 24 24"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+          <h3>Drop a PDF here, or click to browse</h3>
+          <p>SPACE / ENTER TO OPEN FILE DIALOG</p>
+          <input type="file" id="splitFileInput" accept="application/pdf">
+        </div>
+      </div>
+
+      <div class="panel" id="splitPagesPanel" style="display:none;">
+        <div class="panel-head">
+          <div>
+            <h3 class="panel-title" id="splitDocName">document.pdf</h3>
+            <div class="panel-sub" id="splitDocMeta">— pages</div>
+          </div>
+          <button class="btn btn-ghost" id="splitReset">↺ Replace file</button>
+        </div>
+        <div class="page-grid" id="splitPageGrid"></div>
+        <div class="toolbar-row">
+          <button class="btn" id="btnRotateSel">⟳ Rotate selected 90°</button>
+          <button class="btn btn-danger" id="btnDeleteSel">✕ Mark selected for removal</button>
+          <button class="btn btn-ghost" id="btnClearSel">Clear selection</button>
+          <span class="hint" id="selCountHint" style="margin-left:auto;">0 pages selected</span>
+        </div>
+      </div>
+
+      <div class="panel" id="splitMethodPanel" style="display:none;">
+        <div class="panel-head">
+          <h3 class="panel-title">Split method</h3>
+        </div>
+        <div class="split-methods">
+          <div class="method active" data-method="ranges">
+            <div class="method-head">
+              <input type="radio" name="splitMethod" id="m-ranges" checked>
+              <label for="m-ranges">Custom ranges — build one or more output files</label>
+            </div>
+            <div class="method-body">
+              <div class="field-row">
+                <div class="field">
+                  <label for="rangeInput">Page range (e.g. 1-3, 7, 10-12)</label>
+                  <input type="text" id="rangeInput" class="wide" placeholder="1-3, 7, 10-12">
+                </div>
+                <button class="btn btn-primary" id="addRangeBtn" style="align-self:flex-end;">+ Add as file</button>
+              </div>
+              <div class="error-text" id="rangeError"></div>
+              <div class="range-list" id="rangeList"></div>
+            </div>
+          </div>
+
+          <div class="method" data-method="after">
+            <div class="method-head">
+              <input type="radio" name="splitMethod" id="m-after">
+              <label for="m-after">Split after specific pages</label>
+            </div>
+            <div class="method-body">
+              <div class="field">
+                <label for="afterInput">Insert break after page(s)</label>
+                <input type="text" id="afterInput" class="wide" placeholder="e.g. 4, 9, 15">
+              </div>
+              <div class="hint">Produces consecutive files, breaking right after each listed page.</div>
+            </div>
+          </div>
+
+          <div class="method" data-method="every">
+            <div class="method-head">
+              <input type="radio" name="splitMethod" id="m-every">
+              <label for="m-every">Split every N pages</label>
+            </div>
+            <div class="method-body">
+              <div class="field">
+                <label for="everyInput">N pages per file</label>
+                <input type="number" id="everyInput" min="1" value="1">
+              </div>
+            </div>
+          </div>
+
+          <div class="method" data-method="selected">
+            <div class="method-head">
+              <input type="radio" name="splitMethod" id="m-selected">
+              <label for="m-selected">Extract selected pages → one file</label>
+            </div>
+            <div class="method-body">
+              <div class="hint">Click page thumbnails above to select, then process. Uses current selection.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="toolbar-row">
+          <button class="btn btn-primary" id="btnPreviewStructure">Preview output structure</button>
+          <button class="btn btn-primary" id="btnProcessSplit" style="margin-left:auto;">Split PDF →</button>
+        </div>
+      </div>
+
+      <div class="panel results-panel" id="splitResults">
+        <div class="panel-head">
+          <h3 class="panel-title">Output files</h3>
+          <button class="btn" id="downloadAllSplit">⬇ Download all (.zip not available — sequential)</button>
+        </div>
+        <div id="splitResultList"></div>
+      </div>
+    </div>
+
+    <aside class="spec-panel">
+      <div class="panel">
+        <h4>Document spec</h4>
+        <div class="spec-row"><span class="k">Total pages</span><span class="v" id="specPages">—</span></div>
+        <div class="spec-row"><span class="k">Selected</span><span class="v" id="specSelected">0</span></div>
+        <div class="spec-row"><span class="k">Marked delete</span><span class="v" id="specDeleted">0</span></div>
+        <div class="spec-row"><span class="k">Output files</span><span class="v" id="specOutputs">0</span></div>
+        <div class="spec-row"><span class="k">File size</span><span class="v" id="specSize">—</span></div>
+        <div class="spec-note">
+          Click a thumbnail to select · <span class="kbd">Shift+Click</span> for range · <span class="kbd">⌘/Ctrl+A</span> select all.<br><br>
+          All processing happens on-device using pdf-lib. Nothing is uploaded.
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ================= MERGER VIEW ================= -->
+  <div id="mergeView" class="workspace" style="display:none;">
+    <div class="main-col">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h3 class="panel-title">Source documents</h3>
+            <div class="panel-sub">multiple PDFs · reorder by drag</div>
+          </div>
+        </div>
+        <div class="dropzone" id="mergeDropzone" tabindex="0" role="button" aria-label="Upload PDFs to merge">
+          <svg viewBox="0 0 24 24"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+          <h3>Drop PDFs here, or click to browse</h3>
+          <p>MULTIPLE FILES SUPPORTED</p>
+          <input type="file" id="mergeFileInput" accept="application/pdf" multiple>
+        </div>
+
+        <div id="mergeEmptyState" class="empty-state">No files added yet — add at least two PDFs to merge.</div>
+        <div class="file-list" id="mergeFileList"></div>
+
+        <div class="toolbar-row" id="mergeToolbar" style="display:none;">
+          <button class="btn btn-ghost" id="clearMergeList">Clear all</button>
+          <button class="btn btn-primary" id="btnProcessMerge" style="margin-left:auto;">Merge PDFs →</button>
+        </div>
+      </div>
+
+      <div class="panel results-panel" id="mergeResults">
+        <div class="panel-head"><h3 class="panel-title">Merged document</h3></div>
+        <div id="mergeResultList"></div>
+      </div>
+    </div>
+
+    <aside class="spec-panel">
+      <div class="panel">
+        <h4>Merge spec</h4>
+        <div class="spec-row"><span class="k">Files queued</span><span class="v" id="mSpecFiles">0</span></div>
+        <div class="spec-row"><span class="k">Total pages</span><span class="v" id="mSpecPages">0</span></div>
+        <div class="spec-row"><span class="k">Est. output size</span><span class="v" id="mSpecSize">—</span></div>
+        <div class="spec-note">
+          Drag rows by the <span class="kbd">⣿</span> handle to reorder. Output follows top-to-bottom order.<br><br>
+          Merge order is preserved exactly — no page re-shuffling within a file.
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>Sheetwork — no uploads, no accounts, no tracking. Files never leave this tab.</footer>
+</div>
+
+<div class="progress-overlay" id="progressOverlay">
+  <div class="progress-card">
+    <div class="spinner"></div>
+    <p id="progressText">Processing…</p>
+    <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+<script>
+'use strict';
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const { PDFDocument, degrees } = PDFLib;
+
+/* ===================== UTIL ===================== */
+const $ = (id) => document.getElementById(id);
+function toast(msg, type='') {
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' '+type : '');
+  el.textContent = msg;
+  $('toastStack').appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 3600);
+}
+function showProgress(text){ $('progressText').textContent = text; $('progressFill').style.width='10%'; $('progressOverlay').classList.add('show'); }
+function setProgress(pct){ $('progressFill').style.width = pct+'%'; }
+function hideProgress(){ $('progressOverlay').classList.remove('show'); $('progressFill').style.width='0%'; }
+function fmtBytes(b){
+  if (b === null || b === undefined) return '—';
+  if (b < 1024) return b + ' B';
+  if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+  return (b/(1024*1024)).toFixed(2) + ' MB';
+}
+function download(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+
+/* ===================== THEME ===================== */
+const themeToggle = $('themeToggle');
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  document.body.setAttribute('data-theme', t);
+  localStorage.setItem('sheetwork-theme', t);
+}
+applyTheme(localStorage.getItem('sheetwork-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light'));
+themeToggle.addEventListener('click', ()=>{
+  const cur = document.body.getAttribute('data-theme');
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+});
+
+/* ===================== TAB SWITCH ===================== */
+const tabSplit = $('tabSplit'), tabMerge = $('tabMerge');
+const splitView = $('splitView'), mergeView = $('mergeView');
+tabSplit.addEventListener('click', ()=>{
+  tabSplit.classList.add('active'); tabSplit.setAttribute('aria-selected','true');
+  tabMerge.classList.remove('active'); tabMerge.setAttribute('aria-selected','false');
+  splitView.style.display=''; mergeView.style.display='none';
+});
+tabMerge.addEventListener('click', ()=>{
+  tabMerge.classList.add('active'); tabMerge.setAttribute('aria-selected','true');
+  tabSplit.classList.remove('active'); tabSplit.setAttribute('aria-selected','false');
+  mergeView.style.display=''; splitView.style.display='none';
+});
+
+/* =====================================================================
+   SPLITTER
+===================================================================== */
+const splitState = {
+  file: null, bytes: null, pdfDoc: null, pdfjsDoc: null, pageCount: 0,
+  selected: new Set(), deleted: new Set(), rotations: {}, ranges: [], lastClicked: null
+};
+
+const splitDropzone = $('splitDropzone');
+const splitFileInput = $('splitFileInput');
+['dragenter','dragover'].forEach(ev => splitDropzone.addEventListener(ev, e=>{ e.preventDefault(); splitDropzone.classList.add('drag'); }));
+['dragleave','drop'].forEach(ev => splitDropzone.addEventListener(ev, e=>{ e.preventDefault(); splitDropzone.classList.remove('drag'); }));
+splitDropzone.addEventListener('drop', e=>{
+  const f = e.dataTransfer.files[0];
+  if (f) handleSplitFile(f);
+});
+splitDropzone.addEventListener('click', ()=> splitFileInput.click());
+splitDropzone.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); splitFileInput.click(); }});
+splitFileInput.addEventListener('change', e=>{ if(e.target.files[0]) handleSplitFile(e.target.files[0]); });
+$('splitReset').addEventListener('click', ()=>{
+  splitState.file=null; splitState.pdfDoc=null; splitState.pdfjsDoc=null; splitState.pageCount=0;
+  splitState.selected.clear(); splitState.deleted.clear(); splitState.rotations={}; splitState.ranges=[];
+  $('splitPagesPanel').style.display='none'; $('splitMethodPanel').style.display='none';
+  $('splitUploadPanel').style.display=''; $('splitResults').classList.remove('show');
+  $('splitPageGrid').innerHTML=''; $('rangeList').innerHTML=''; splitFileInput.value='';
+  updateSpec();
+});
+
+async function handleSplitFile(file){
+  if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+    toast('Please choose a PDF file.', 'error'); return;
+  }
+  showProgress('Reading document…');
+  try {
+    const buf = await file.arrayBuffer();
+    splitState.file = file;
+    splitState.bytes = buf;
+    setProgress(35);
+    const pdfDoc = await PDFDocument.load(buf, { ignoreEncryption: true });
+    splitState.pdfDoc = pdfDoc;
+    splitState.pageCount = pdfDoc.getPageCount();
+    setProgress(55);
+    const pdfjsDoc = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+    splitState.pdfjsDoc = pdfjsDoc;
+    setProgress(75);
+
+    $('splitDocName').textContent = file.name;
+    $('splitDocMeta').textContent = `${splitState.pageCount} page${splitState.pageCount!==1?'s':''} · ${fmtBytes(file.size)}`;
+    $('splitUploadPanel').style.display='none';
+    $('splitPagesPanel').style.display='';
+    $('splitMethodPanel').style.display='';
+    $('splitResults').classList.remove('show');
+
+    await renderSplitGrid();
+    setProgress(100);
+    hideProgress();
+    toast(`Loaded ${splitState.pageCount} pages.`, 'success');
+    updateSpec();
+  } catch(err) {
+    hideProgress();
+    console.error(err);
+    toast('Could not read this PDF. It may be corrupted or password-protected.', 'error');
+  }
+}
+
+async function renderSplitGrid(){
+  const grid = $('splitPageGrid');
+  grid.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  for (let i=1; i<=splitState.pageCount; i++){
+    const card = document.createElement('div');
+    card.className = 'page-card';
+    card.dataset.page = i;
+    card.innerHTML = `
+      <div class="chk" aria-hidden="true"></div>
+      <div class="rotate-badge">⟳</div>
+      <div class="del-x">REMOVE</div>
+      <div class="thumb-wrap"><canvas></canvas></div>
+      <div class="pg-num">Page ${i}</div>`;
+    card.setAttribute('tabindex','0');
+    card.setAttribute('role','checkbox');
+    card.setAttribute('aria-checked','false');
+    card.setAttribute('aria-label', `Page ${i}`);
+    card.addEventListener('click', (e)=> onPageCardClick(e, i));
+    card.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); onPageCardClick(e,i);} });
+    frag.appendChild(card);
+    renderThumbnail(i, card.querySelector('canvas'));
+  }
+  grid.appendChild(frag);
+}
+
+async function renderThumbnail(pageNum, canvas){
+  try{
+    const page = await splitState.pdfjsDoc.getPage(pageNum);
+    const viewport = page.getViewport({ scale: 1 });
+    const scale = 160 / viewport.width;
+    const scaledViewport = page.getViewport({ scale });
+    canvas.width = scaledViewport.width;
+    canvas.height = scaledViewport.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+  } catch(e){ /* leave blank on failure */ }
+}
+
+function onPageCardClick(e, pageNum){
+  const cards = [...document.querySelectorAll('#splitPageGrid .page-card')];
+  if (e.shiftKey && splitState.lastClicked !== null){
+    const a = Math.min(splitState.lastClicked, pageNum), b = Math.max(splitState.lastClicked, pageNum);
+    for (let p=a; p<=b; p++) splitState.selected.add(p);
+  } else {
+    if (splitState.selected.has(pageNum)) splitState.selected.delete(pageNum);
+    else splitState.selected.add(pageNum);
+    splitState.lastClicked = pageNum;
+  }
+  syncPageCardVisuals();
+  updateSpec();
+}
+
+function syncPageCardVisuals(){
+  document.querySelectorAll('#splitPageGrid .page-card').forEach(card=>{
+    const p = Number(card.dataset.page);
+    card.classList.toggle('selected', splitState.selected.has(p));
+    card.setAttribute('aria-checked', splitState.selected.has(p) ? 'true':'false');
+    card.classList.toggle('marked-delete', splitState.deleted.has(p));
+    card.classList.toggle('rotated', !!splitState.rotations[p]);
+    const canvas = card.querySelector('canvas');
+    if (canvas) canvas.style.transform = `rotate(${splitState.rotations[p]||0}deg)`;
+  });
+}
+
+document.addEventListener('keydown', (e)=>{
+  if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='a' && splitView.style.display!=='none' && splitState.pageCount){
+    if (document.activeElement.tagName === 'INPUT') return;
+    e.preventDefault();
+    for (let i=1;i<=splitState.pageCount;i++) splitState.selected.add(i);
+    syncPageCardVisuals(); updateSpec();
+  }
+});
+
+$('btnRotateSel').addEventListener('click', ()=>{
+  if (!splitState.selected.size){ toast('Select pages to rotate first.'); return; }
+  splitState.selected.forEach(p=>{ splitState.rotations[p] = ((splitState.rotations[p]||0) + 90) % 360; });
+  syncPageCardVisuals();
+});
+$('btnDeleteSel').addEventListener('click', ()=>{
+  if (!splitState.selected.size){ toast('Select pages to mark first.'); return; }
+  splitState.selected.forEach(p=> splitState.deleted.add(p));
+  splitState.selected.clear();
+  syncPageCardVisuals(); updateSpec();
+});
+$('btnClearSel').addEventListener('click', ()=>{
+  splitState.selected.clear(); syncPageCardVisuals(); updateSpec();
+});
+
+/* ---- split method switching ---- */
+document.querySelectorAll('.method').forEach(m=>{
+  m.addEventListener('click', ()=>{
+    document.querySelectorAll('.method').forEach(x=>x.classList.remove('active'));
+    m.classList.add('active');
+    m.querySelector('input[type=radio]').checked = true;
+  });
+});
+
+/* ---- range parsing ---- */
+function parsePageSpec(str, maxPage){
+  // returns {pages:[...], error: string|null}
+  const cleaned = str.trim();
+  if (!cleaned) return { pages: [], error: 'Enter a page range.' };
+  const parts = cleaned.split(',').map(s=>s.trim()).filter(Boolean);
+  const pages = new Set();
+  for (const part of parts){
+    const m = part.match(/^(\d+)\s*-\s*(\d+)$/);
+    if (m){
+      let a = parseInt(m[1],10), b = parseInt(m[2],10);
+      if (a > b) [a,b] = [b,a];
+      if (a < 1 || b > maxPage) return { pages:[], error: `Range "${part}" is out of bounds (1–${maxPage}).` };
+      for (let p=a;p<=b;p++) pages.add(p);
+    } else if (/^\d+$/.test(part)){
+      const p = parseInt(part,10);
+      if (p < 1 || p > maxPage) return { pages:[], error: `Page ${p} is out of bounds (1–${maxPage}).` };
+      pages.add(p);
+    } else {
+      return { pages:[], error: `Could not understand "${part}". Use formats like 1-3 or 7.` };
+    }
+  }
+  return { pages: [...pages].sort((a,b)=>a-b), error: null };
+}
+
+$('rangeInput').addEventListener('input', ()=>{ $('rangeError').classList.remove('show'); });
+$('addRangeBtn').addEventListener('click', ()=>{
+  const val = $('rangeInput').value;
+  const { pages, error } = parsePageSpec(val, splitState.pageCount);
+  if (error){ $('rangeError').textContent = error; $('rangeError').classList.add('show'); return; }
+  splitState.ranges.push({ label: val.trim(), pages });
+  $('rangeInput').value='';
+  renderRangeList();
+  updateSpec();
+});
+function renderRangeList(){
+  const wrap = $('rangeList');
+  wrap.innerHTML='';
+  splitState.ranges.forEach((r, idx)=>{
+    const chip = document.createElement('div');
+    chip.className='range-chip';
+    chip.innerHTML = `<span class="rc-label">File ${idx+1}: <strong>${r.label}</strong></span>
+      <span class="rc-meta">${r.pages.length} page${r.pages.length!==1?'s':''}</span>
+      <button aria-label="Remove range">✕</button>`;
+    chip.querySelector('button').addEventListener('click', ()=>{
+      splitState.ranges.splice(idx,1); renderRangeList(); updateSpec();
+    });
+    wrap.appendChild(chip);
+  });
+}
+
+function getActiveMethod(){
+  return document.querySelector('input[name=splitMethod]:checked').id.replace('m-','');
+}
+
+function computeOutputPlan(){
+  // Returns array of {name, pages:[1-indexed page numbers excluding globally-deleted]}
+  const method = getActiveMethod();
+  const activePages = (arr) => arr.filter(p => !splitState.deleted.has(p));
+  const base = splitState.file ? splitState.file.name.replace(/\.pdf$/i,'') : 'document';
+
+  if (method === 'ranges'){
+    if (!splitState.ranges.length) return { error: 'Add at least one page range.' };
+    return { plan: splitState.ranges.map((r,i)=>({ name: `${base}_part${i+1}.pdf`, pages: activePages(r.pages) })) };
+  }
+  if (method === 'after'){
+    const { pages: breaks, error } = parsePageSpec($('afterInput').value || '', splitState.pageCount);
+    if (error) return { error };
+    if (!breaks.length) return { error: 'Enter at least one page number to split after.' };
+    const sortedBreaks = [...new Set(breaks)].sort((a,b)=>a-b);
+    const plan = [];
+    let start = 1;
+    sortedBreaks.forEach(b=>{
+      if (b >= start){
+        const pages = []; for (let p=start;p<=b;p++) pages.push(p);
+        plan.push({ name: `${base}_part${plan.length+1}.pdf`, pages: activePages(pages) });
+        start = b+1;
+      }
+    });
+    if (start <= splitState.pageCount){
+      const pages = []; for (let p=start;p<=splitState.pageCount;p++) pages.push(p);
+      plan.push({ name: `${base}_part${plan.length+1}.pdf`, pages: activePages(pages) });
+    }
+    return { plan };
+  }
+  if (method === 'every'){
+    const n = parseInt($('everyInput').value, 10);
+    if (!n || n < 1) return { error: 'Enter a valid number of pages per file.' };
+    const plan = [];
+    for (let start=1; start<=splitState.pageCount; start+=n){
+      const end = Math.min(start+n-1, splitState.pageCount);
+      const pages = []; for (let p=start;p<=end;p++) pages.push(p);
+      plan.push({ name: `${base}_part${plan.length+1}.pdf`, pages: activePages(pages) });
+    }
+    return { plan };
+  }
+  if (method === 'selected'){
+    if (!splitState.selected.size) return { error: 'Select pages in the grid above first.' };
+    const pages = activePages([...splitState.selected].sort((a,b)=>a-b));
+    return { plan: [{ name: `${base}_selected.pdf`, pages }] };
+  }
+  return { error: 'Unknown method.' };
+}
+
+$('btnPreviewStructure').addEventListener('click', ()=>{
+  const { plan, error } = computeOutputPlan();
+  if (error){ toast(error, 'error'); return; }
+  const emptyFiles = plan.filter(p=>!p.pages.length);
+  let msg = plan.map((p,i)=>`${i+1}. ${p.name} — ${p.pages.length} page(s)`).join('\n');
+  if (emptyFiles.length) msg += `\n\n⚠ ${emptyFiles.length} file(s) would be empty (all pages removed).`;
+  alert('Output structure:\n\n' + msg);
+});
+
+$('btnProcessSplit').addEventListener('click', async ()=>{
+  const { plan, error } = computeOutputPlan();
+  if (error){ toast(error, 'error'); return; }
+  const valid = plan.filter(p=>p.pages.length);
+  if (!valid.length){ toast('No pages remain to export — check your ranges and deletions.', 'error'); return; }
+
+  showProgress('Building output files…');
+  try{
+    const results = [];
+    for (let i=0;i<valid.length;i++){
+      setProgress(Math.round(((i)/valid.length)*90)+5);
+      const spec = valid[i];
+      const outDoc = await PDFDocument.create();
+      const srcDoc = await PDFDocument.load(splitState.bytes, { ignoreEncryption:true });
+      const indices = spec.pages.map(p=>p-1);
+      const copied = await outDoc.copyPages(srcDoc, indices);
+      copied.forEach((pg, idx)=>{
+        const origPageNum = spec.pages[idx];
+        const rot = splitState.rotations[origPageNum] || 0;
+        if (rot) pg.setRotation(degrees((pg.getRotation().angle||0) + rot));
+        outDoc.addPage(pg);
+      });
+      const bytes = await outDoc.save();
+      results.push({ name: spec.name, size: bytes.byteLength, blob: new Blob([bytes], {type:'application/pdf'}), pages: spec.pages.length });
+    }
+    setProgress(100);
+    hideProgress();
+    renderSplitResults(results);
+    toast(`Created ${results.length} file${results.length!==1?'s':''}.`, 'success');
+  } catch(err){
+    hideProgress();
+    console.error(err);
+    toast('Something went wrong while splitting. Please try again.', 'error');
+  }
+});
+
+function renderSplitResults(results){
+  const panel = $('splitResults');
+  const list = $('splitResultList');
+  list.innerHTML='';
+  results.forEach(r=>{
+    const row = document.createElement('div');
+    row.className='result-item';
+    row.innerHTML = `<div><div class="ri-name">${r.name}</div><div class="ri-meta">${r.pages} page(s) · ${fmtBytes(r.size)}</div></div>`;
+    const btn = document.createElement('button');
+    btn.className='btn btn-primary'; btn.textContent='⬇ Download';
+    btn.addEventListener('click', ()=> download(r.blob, r.name));
+    row.appendChild(btn);
+    list.appendChild(row);
+  });
+  panel.classList.add('show');
+  $('downloadAllSplit').onclick = ()=>{ results.forEach((r,i)=> setTimeout(()=>download(r.blob, r.name), i*250)); };
+}
+
+function updateSpec(){
+  $('specPages').textContent = splitState.pageCount || '—';
+  $('specSelected').textContent = splitState.selected.size;
+  $('specDeleted').textContent = splitState.deleted.size;
+  $('specSize').textContent = splitState.file ? fmtBytes(splitState.file.size) : '—';
+  let outputs = 0;
+  try{ const { plan } = computeOutputPlan(); outputs = plan ? plan.length : 0; }catch(e){}
+  $('specOutputs').textContent = outputs;
+  $('selCountHint').textContent = `${splitState.selected.size} page${splitState.selected.size!==1?'s':''} selected`;
+}
+
+/* =====================================================================
+   MERGER
+===================================================================== */
+const mergeState = { files: [] }; // {id, file, bytes, pdfDoc, pageCount, thumbCanvas}
+let mergeIdCounter = 0;
+
+const mergeDropzone = $('mergeDropzone');
+const mergeFileInput = $('mergeFileInput');
+['dragenter','dragover'].forEach(ev => mergeDropzone.addEventListener(ev, e=>{ e.preventDefault(); mergeDropzone.classList.add('drag'); }));
+['dragleave','drop'].forEach(ev => mergeDropzone.addEventListener(ev, e=>{ e.preventDefault(); mergeDropzone.classList.remove('drag'); }));
+mergeDropzone.addEventListener('drop', e=>{ handleMergeFiles(e.dataTransfer.files); });
+mergeDropzone.addEventListener('click', ()=> mergeFileInput.click());
+mergeDropzone.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); mergeFileInput.click(); }});
+mergeFileInput.addEventListener('change', e=>{ handleMergeFiles(e.target.files); mergeFileInput.value=''; });
+
+async function handleMergeFiles(fileList){
+  const files = [...fileList].filter(f => f.type==='application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
+  if (!files.length){ toast('Please choose PDF files.', 'error'); return; }
+  showProgress('Reading documents…');
+  for (let i=0;i<files.length;i++){
+    setProgress(Math.round((i/files.length)*90));
+    const file = files[i];
+    try{
+      const buf = await file.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(buf, { ignoreEncryption:true });
+      const pageCount = pdfDoc.getPageCount();
+      const entry = { id: ++mergeIdCounter, file, bytes: buf, pageCount };
+      mergeState.files.push(entry);
+      renderMergeThumb(entry, buf);
+    } catch(err){
+      toast(`Skipped "${file.name}" — could not be read as a PDF.`, 'error');
+    }
+  }
+  setProgress(100); hideProgress();
+  renderMergeList();
+}
+
+async function renderMergeThumb(entry, buf){
+  try{
+    const doc = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+    const page = await doc.getPage(1);
+    const viewport = page.getViewport({ scale: 1 });
+    const scale = 60 / viewport.width;
+    const sv = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    canvas.width = sv.width; canvas.height = sv.height;
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport: sv }).promise;
+    entry.thumbDataUrl = canvas.toDataURL();
+    const img = document.querySelector(`.file-row[data-id="${entry.id}"] .fr-thumb img`);
+    if (img) img.src = entry.thumbDataUrl;
+  } catch(e){}
+}
+
+let dragSrcId = null;
+function renderMergeList(){
+  const list = $('mergeFileList');
+  list.innerHTML='';
+  $('mergeEmptyState').style.display = mergeState.files.length ? 'none' : '';
+  $('mergeToolbar').style.display = mergeState.files.length >= 1 ? '' : 'none';
+
+  mergeState.files.forEach((entry, idx)=>{
+    const row = document.createElement('div');
+    row.className='file-row';
+    row.draggable = true;
+    row.dataset.id = entry.id;
+    row.innerHTML = `
+      <span class="grip" aria-hidden="true">⣿</span>
+      <span class="fr-index">${idx+1}</span>
+      <div class="fr-thumb">${entry.thumbDataUrl ? `<img src="${entry.thumbDataUrl}" alt="">` : ''}</div>
+      <div class="fr-info">
+        <div class="fr-name">${entry.file.name}</div>
+        <div class="fr-meta">${entry.pageCount} page${entry.pageCount!==1?'s':''} · ${fmtBytes(entry.file.size)}</div>
+      </div>
+      <button class="fr-remove" aria-label="Remove ${entry.file.name}">✕</button>`;
+    row.querySelector('.fr-remove').addEventListener('click', ()=>{
+      mergeState.files = mergeState.files.filter(f=>f.id!==entry.id);
+      renderMergeList(); updateMergeSpec();
+    });
+    row.addEventListener('dragstart', ()=>{ dragSrcId = entry.id; row.classList.add('dragging'); });
+    row.addEventListener('dragend', ()=>{ row.classList.remove('dragging'); document.querySelectorAll('.file-row').forEach(r=>r.classList.remove('drag-over')); });
+    row.addEventListener('dragover', e=>{ e.preventDefault(); row.classList.add('drag-over'); });
+    row.addEventListener('dragleave', ()=> row.classList.remove('drag-over'));
+    row.addEventListener('drop', e=>{
+      e.preventDefault(); row.classList.remove('drag-over');
+      if (dragSrcId===null || dragSrcId===entry.id) return;
+      const srcIdx = mergeState.files.findIndex(f=>f.id===dragSrcId);
+      const tgtIdx = mergeState.files.findIndex(f=>f.id===entry.id);
+      const [moved] = mergeState.files.splice(srcIdx,1);
+      mergeState.files.splice(tgtIdx,0,moved);
+      renderMergeList();
+    });
+    list.appendChild(row);
+  });
+  updateMergeSpec();
+}
+
+$('clearMergeList').addEventListener('click', ()=>{ mergeState.files=[]; renderMergeList(); $('mergeResults').classList.remove('show'); });
+
+function updateMergeSpec(){
+  $('mSpecFiles').textContent = mergeState.files.length;
+  const totalPages = mergeState.files.reduce((a,f)=>a+f.pageCount,0);
+  $('mSpecPages').textContent = totalPages;
+  const totalSize = mergeState.files.reduce((a,f)=>a+f.file.size,0);
+  $('mSpecSize').textContent = mergeState.files.length ? fmtBytes(totalSize) : '—';
+}
+
+$('btnProcessMerge').addEventListener('click', async ()=>{
+  if (mergeState.files.length < 2){ toast('Add at least two PDFs to merge.', 'error'); return; }
+  showProgress('Merging documents…');
+  try{
+    const outDoc = await PDFDocument.create();
+    for (let i=0;i<mergeState.files.length;i++){
+      setProgress(Math.round((i/mergeState.files.length)*90)+5);
+      const entry = mergeState.files[i];
+      const srcDoc = await PDFDocument.load(entry.bytes, { ignoreEncryption:true });
+      const pages = await outDoc.copyPages(srcDoc, srcDoc.getPageIndices());
+      pages.forEach(p=>outDoc.addPage(p));
+    }
+    const bytes = await outDoc.save();
+    setProgress(100); hideProgress();
+    const blob = new Blob([bytes], { type:'application/pdf' });
+    const name = 'merged.pdf';
+    const list = $('mergeResultList');
+    list.innerHTML='';
+    const row = document.createElement('div');
+    row.className='result-item';
+    row.innerHTML = `<div><div class="ri-name">${name}</div><div class="ri-meta">${outDoc.getPageCount()} pages · ${fmtBytes(bytes.byteLength)}</div></div>`;
+    const btn = document.createElement('button'); btn.className='btn btn-primary'; btn.textContent='⬇ Download';
+    btn.addEventListener('click', ()=>download(blob, name));
+    row.appendChild(btn); list.appendChild(row);
+    $('mergeResults').classList.add('show');
+    toast('Merge complete.', 'success');
+  } catch(err){
+    hideProgress(); console.error(err);
+    toast('Something went wrong while merging. Please try again.', 'error');
+  }
+});
+
+updateSpec();
+</script>
+</body>
+</html>
