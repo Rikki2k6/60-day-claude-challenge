@@ -137,7 +137,6 @@ Claude generated a polished PDF utility with a modern interface, responsive layo
 - `pdf-splitter-merger.html` — Interactive PDF Splitter & Merger application
 - PDF Splitter screenshots
 - PDF Merger screenshots
-- Sample processed PDF files
 
 ---
 
