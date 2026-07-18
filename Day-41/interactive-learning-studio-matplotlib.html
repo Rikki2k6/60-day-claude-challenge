@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Learning Studio — Matplotlib Fundamentals</title>
+<style>
+  :root{
+    --bg:#0b0f14; --bg-elev:#121822; --bg-card:#161e2b; --border:#232d3d;
+    --text:#e6edf5; --text-dim:#93a2b8; --text-faint:#5c6b81;
+    --accent:#5eead4; --accent-2:#7c9cff; --accent-3:#f7b955;
+    --danger:#ff6b6b; --ok:#4ade80;
+    --grad: linear-gradient(135deg,#5eead4 0%,#7c9cff 100%);
+    --radius:14px; --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --mono: 'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+    --sans: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; font-family:var(--sans); background:
+      radial-gradient(circle at 15% -10%, #14243a 0%, transparent 45%),
+      radial-gradient(circle at 90% 10%, #241a3a 0%, transparent 40%),
+      var(--bg);
+    color:var(--text); line-height:1.6; min-height:100vh;
+  }
+  ::selection{background:var(--accent); color:#001; }
+  a{color:var(--accent-2);}
+  .wrap{max-width:980px; margin:0 auto; padding:0 20px 100px;}
+  /* ---------- Top progress bar ---------- */
+  #topbar{position:sticky; top:0; z-index:50; background:rgba(11,15,20,.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--border);}
+  #topbar-inner{max-width:980px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; gap:16px;}
+  #topbar .title{font-weight:700; font-size:14px; white-space:nowrap; display:flex; gap:8px; align-items:center;}
+  #topbar .badge-icon{width:22px;height:22px; border-radius:6px; background:var(--grad);}
+  #progress-track{flex:1; height:8px; background:var(--bg-elev); border-radius:8px; overflow:hidden; border:1px solid var(--border);}
+  #progress-fill{height:100%; width:0%; background:var(--grad); transition:width .5s ease;}
+  #points{font-size:13px; color:var(--accent-3); font-weight:700; white-space:nowrap;}
+  /* ---------- Hero ---------- */
+  header.hero{padding:56px 0 30px;}
+  .eyebrow{display:inline-block; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); background:rgba(94,234,212,.08); border:1px solid rgba(94,234,212,.25); padding:5px 12px; border-radius:99px; margin-bottom:18px;}
+  h1.hero-title{font-size:clamp(30px,5vw,46px); margin:0 0 12px; line-height:1.1; background:linear-gradient(135deg,#fff,#9fb3cc); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .hero-sub{color:var(--text-dim); font-size:17px; max-width:640px; margin-bottom:30px;}
+  .info-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:30px;}
+  .info-card{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px;}
+  .info-card .label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint); margin-bottom:6px;}
+  .info-card .value{font-size:15px; font-weight:600;}
+  .obj-list{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:20px 22px; margin-bottom:20px;}
+  .obj-list h3{margin-top:0; font-size:15px; color:var(--accent);}
+  .obj-list ul{margin:0; padding-left:20px; color:var(--text-dim);}
+  .obj-list li{margin-bottom:6px;}
+  .reward-box{display:flex; gap:14px; align-items:center; background:linear-gradient(135deg, rgba(124,156,255,.1), rgba(94,234,212,.08)); border:1px solid rgba(124,156,255,.25); border-radius:var(--radius); padding:16px 20px;}
+  .reward-box .icon{font-size:28px;}
+  .reward-box .txt strong{color:var(--accent-3);}
+  .start-btn{display:inline-flex; align-items:center; gap:8px; margin-top:26px; background:var(--grad); color:#04121a; font-weight:700; border:none; padding:14px 26px; border-radius:10px; font-size:15px; cursor:pointer; box-shadow:var(--shadow);}
+  .start-btn:hover{filter:brightness(1.08);}
+  /* ---------- Modules ---------- */
+  .module{margin-top:70px; scroll-margin-top:80px; position:relative;}
+  .module.locked .module-content{filter:blur(4px); pointer-events:none; user-select:none;}
+  .locked-banner{display:none; position:absolute; inset:0; align-items:center; justify-content:center; z-index:5;}
+  .module.locked .locked-banner{display:flex;}
+  .locked-banner .box{background:var(--bg-elev); border:1px solid var(--border); padding:22px 30px; border-radius:var(--radius); text-align:center; box-shadow:var(--shadow);}
+  .locked-banner .box .lock-icon{font-size:26px; margin-bottom:8px;}
+  .module-head{display:flex; align-items:center; gap:14px; margin-bottom:22px;}
+  .mod-num{width:44px; height:44px; border-radius:12px; background:var(--bg-card); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--accent);}
+  .mod-num.done{background:var(--grad); color:#04121a; border:none;}
+  .module-head h2{margin:0; font-size:24px;}
+  .module-head .diff{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin-top:2px;}
+  section.card{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:24px 26px; margin-bottom:20px;}
+  section.card h3{margin-top:0; font-size:17px; color:#fff; display:flex; align-items:center; gap:8px;}
+  section.card h3 .tag{font-size:10px; text-transform:uppercase; letter-spacing:.06em; background:rgba(124,156,255,.15); color:var(--accent-2); padding:3px 8px; border-radius:6px; font-weight:700;}
+  pre{background:#0a0e14; border:1px solid var(--border); border-radius:10px; padding:16px; overflow-x:auto; font-family:var(--mono); font-size:13.5px; color:#c9e6df;}
+  code{font-family:var(--mono); background:rgba(124,156,255,.12); padding:1px 6px; border-radius:5px; font-size:.92em; color:#bcd1ff;}
+  pre code{background:none; padding:0; color:inherit;}
+  .analogy{background:linear-gradient(135deg, rgba(247,185,85,.08), transparent); border-left:3px solid var(--accent-3); padding:12px 16px; border-radius:8px; margin:14px 0; font-size:14.5px; color:var(--text-dim);}
+  .analogy b{color:var(--accent-3);}
+  .misconception{background:rgba(255,107,107,.08); border-left:3px solid var(--danger); padding:12px 16px; border-radius:8px; margin:14px 0; font-size:14.5px;}
+  .misconception b{color:var(--danger);}
+  .takeaways{background:rgba(74,222,128,.07); border:1px dashed rgba(74,222,128,.4); border-radius:10px; padding:14px 18px; margin-top:16px;}
+  .takeaways h4{margin:0 0 8px; color:var(--ok); font-size:13px; text-transform:uppercase; letter-spacing:.05em;}
+  .takeaways ul{margin:0; padding-left:18px;}
+  table.cmp{width:100%; border-collapse:collapse; font-size:14px; margin:14px 0;}
+  table.cmp th, table.cmp td{border:1px solid var(--border); padding:9px 12px; text-align:left;}
+  table.cmp th{background:var(--bg-elev); color:var(--accent);}
+  .diagram-box{background:#0a0e14; border:1px solid var(--border); border-radius:10px; padding:14px; margin:16px 0; overflow-x:auto;}
+  .exercise{background:var(--bg-elev); border:1px solid var(--border); border-radius:10px; padding:16px 18px; margin-top:14px;}
+  .exercise .ex-title{font-weight:700; color:var(--accent-2); margin-bottom:6px; font-size:13.5px; text-transform:uppercase; letter-spacing:.04em;}
+  details.solution{margin-top:10px;}
+  details.solution summary{cursor:pointer; color:var(--accent); font-size:13.5px; font-weight:600;}
+  details.solution pre{margin-top:8px;}
+  /* ---------- Quiz ---------- */
+  .quiz{background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--radius); padding:24px 26px; margin-top:26px;}
+  .quiz h3{margin-top:0; display:flex; align-items:center; gap:8px;}
+  .qitem{margin-bottom:22px; padding-bottom:18px; border-bottom:1px solid var(--border);}
+  .qitem:last-of-type{border-bottom:none;}
+  .qitem p.qtext{font-weight:600; margin-bottom:10px;}
+  .opts{display:flex; flex-direction:column; gap:8px;}
+  .opt{background:var(--bg-card); border:1px solid var(--border); border-radius:8px; padding:10px 14px; cursor:pointer; font-size:14px; transition:.15s;}
+  .opt:hover{border-color:var(--accent-2);}
+  .opt.selected{border-color:var(--accent-2); background:rgba(124,156,255,.1);}
+  .opt.correct{border-color:var(--ok); background:rgba(74,222,128,.12); color:var(--ok);}
+  .opt.wrong{border-color:var(--danger); background:rgba(255,107,107,.12); color:var(--danger);}
+  .explain{display:none; margin-top:8px; font-size:13.5px; color:var(--text-dim); background:var(--bg); border-left:3px solid var(--accent-2); padding:10px 14px; border-radius:6px;}
+  .explain.show{display:block;}
+  .quiz-actions{display:flex; gap:12px; align-items:center; margin-top:6px;}
+  .btn{background:var(--grad); color:#04121a; font-weight:700; border:none; padding:11px 22px; border-radius:9px; cursor:pointer; font-size:14px;}
+  .btn:disabled{opacity:.4; cursor:not-allowed;}
+  .btn.secondary{background:var(--bg-card); color:var(--text); border:1px solid var(--border);}
+  .score-summary{display:none; margin-top:16px; padding:16px 18px; border-radius:10px; text-align:center; font-weight:700; font-size:16px;}
+  .score-summary.pass{background:rgba(74,222,128,.1); border:1px solid var(--ok); color:var(--ok); display:block;}
+  .score-summary.fail{background:rgba(255,107,107,.1); border:1px solid var(--danger); color:var(--danger); display:block;}
+  /* ---------- Final / Resources ---------- */
+  .cheat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px;}
+  .cheat-card{background:var(--bg-elev); border:1px solid var(--border); border-radius:10px; padding:14px 16px;}
+  .cheat-card h4{margin:0 0 8px; color:var(--accent); font-size:13.5px;}
+  .res-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:10px;}
+  .res-card{background:var(--bg-elev); border:1px solid var(--border); border-radius:10px; padding:14px 16px;}
+  .res-card h4{margin:0 0 8px; font-size:13px; color:var(--accent-3); text-transform:uppercase; letter-spacing:.04em;}
+  .res-card ul{margin:0; padding-left:18px; font-size:13.5px; color:var(--text-dim);}
+  .res-card li{margin-bottom:5px;}
+  .kw{display:inline-block; background:rgba(124,156,255,.12); color:var(--accent-2); padding:4px 10px; border-radius:6px; font-size:12.5px; margin:3px 4px 0 0; font-family:var(--mono);}
+  .print-btn{margin-top:10px;}
+  footer{text-align:center; color:var(--text-faint); font-size:13px; margin-top:70px; padding-top:24px; border-top:1px solid var(--border);}
+  @media print{
+    #topbar, .start-btn, .quiz-actions, .locked-banner, button{display:none !important;}
+    body{background:#fff; color:#000;}
+    .module.locked .module-content{filter:none;}
+    pre, code{background:#f2f2f2; color:#111;}
+  }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div id="topbar-inner">
+    <div class="title"><span class="badge-icon"></span> Matplotlib Studio</div>
+    <div id="progress-track"><div id="progress-fill"></div></div>
+    <div id="points">⭐ 0 pts</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<header class="hero">
+  <span class="eyebrow">Interactive Learning Studio</span>
+  <h1 class="hero-title">Matplotlib Fundamentals</h1>
+  <p class="hero-sub">A complete, hands-on tutorial that takes you from an empty <code>plt.plot()</code> call to building polished, multi-panel, presentation-ready figures — the plotting foundation almost every Python data viz tool (Seaborn, Pandas.plot, etc.) sits on top of.</p>
+
+  <div class="info-grid">
+    <div class="info-card"><div class="label">Estimated Time</div><div class="value">70–90 minutes</div></div>
+    <div class="info-card"><div class="label">Prerequisites</div><div class="value">Basic Python (variables, lists, loops)</div></div>
+    <div class="info-card"><div class="label">Modules</div><div class="value">4, progressive difficulty</div></div>
+    <div class="info-card"><div class="label">Format</div><div class="value">Read → Try → Quiz → Unlock</div></div>
+  </div>
+
+  <div class="obj-list">
+    <h3>Learning Objectives</h3>
+    <ul>
+      <li>Understand the Figure/Axes anatomy and why the <b>object-oriented API</b> beats <code>plt.plot()</code> for real work.</li>
+      <li>Create and style line, scatter, and bar charts with correct labels, legends, and colors.</li>
+      <li>Build multi-panel layouts (<code>subplots</code>) and choose the right chart type for the data.</li>
+      <li>Combine Matplotlib with pandas, apply built-in styles, and export publication-quality images.</li>
+      <li>Recognize and avoid the most common Matplotlib mistakes beginners make.</li>
+    </ul>
+  </div>
+
+  <div class="reward-box">
+    <div class="icon">🏆</div>
+    <div class="txt">Earn <strong>25 points</strong> per module quiz (100 pts total) and unlock a <strong>completion badge</strong> after the Final Challenge. Progress is saved automatically in this browser.</div>
+  </div>
+
+  <button class="start-btn" onclick="document.getElementById('module-1').scrollIntoView({behavior:'smooth'})">Start Module 1 →</button>
+</header>
+
+<!-- ================= MODULE 1 ================= -->
+<div class="module" id="module-1" data-module="1">
+  <div class="module-head">
+    <div class="mod-num" id="modnum-1">1</div>
+    <div><h2>Foundations — Figure, Axes, and Your First Plots</h2><div class="diff">Difficulty: ● ○ ○ ○ Beginner</div></div>
+  </div>
+  <div class="module-content">
+
+    <section class="card">
+      <h3>The Big Idea <span class="tag">Intuition</span></h3>
+      <p>Every Matplotlib chart lives inside two objects: a <b>Figure</b> (the whole canvas/window — think of it as the picture frame) and one or more <b>Axes</b> (the actual plotting area inside that frame — the drawing itself). A figure can hold many axes (multiple charts side by side); an axes holds exactly one plot.</p>
+      <div class="analogy"><b>Analogy:</b> the <code>Figure</code> is a photo album page, and each <code>Axes</code> is one photo slot on that page. You can put one photo (one Axes) or a grid of photos (subplots) on a page.</div>
+
+      <div class="diagram-box">
+        <svg viewBox="0 0 640 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;display:block;margin:0 auto;">
+          <rect x="10" y="10" width="620" height="240" rx="10" fill="#121822" stroke="#5eead4" stroke-width="2"/>
+          <text x="20" y="32" fill="#5eead4" font-size="13" font-family="monospace">Figure (fig)</text>
+          <rect x="60" y="55" width="520" height="170" rx="6" fill="#0a0e14" stroke="#7c9cff" stroke-width="2"/>
+          <text x="70" y="75" fill="#7c9cff" font-size="12" font-family="monospace">Axes (ax) — the plot area</text>
+          <line x1="90" y1="200" x2="560" y2="200" stroke="#e6edf5" stroke-width="1.5"/>
+          <line x1="90" y1="200" x2="90" y2="90" stroke="#e6edf5" stroke-width="1.5"/>
+          <polyline points="90,190 150,150 210,170 270,110 330,140 390,95 450,130 510,100" fill="none" stroke="#f7b955" stroke-width="2.5"/>
+          <text x="300" y="215" fill="#93a2b8" font-size="11" font-family="monospace" text-anchor="middle">x-axis (ax.set_xlabel)</text>
+          <text x="55" y="145" fill="#93a2b8" font-size="11" font-family="monospace" text-anchor="middle" transform="rotate(-90 55 145)">y-axis</text>
+          <text x="320" y="240" fill="#5c6b81" font-size="11" font-family="monospace" text-anchor="middle">fig, ax = plt.subplots()</text>
+        </svg>
+      </div>
+
+      <table class="cmp">
+        <tr><th>Approach</th><th>How you write it</th><th>When to use</th></tr>
+        <tr><td><b>pyplot (state-based)</b></td><td><code>plt.plot(x, y); plt.show()</code></td><td>Quick one-off exploratory plots in a notebook</td></tr>
+        <tr><td><b>Object-oriented (OO)</b></td><td><code>fig, ax = plt.subplots(); ax.plot(x, y)</code></td><td>Anything reused, multi-panel, or production-quality — <b>recommended default</b></td></tr>
+      </table>
+      <div class="misconception"><b>Common misconception:</b> "pyplot and OO are two different libraries." They aren't — <code>plt.plot()</code> is just a shortcut that quietly creates a Figure/Axes for you. The OO API gives you the same objects explicitly, which is why it scales better to multiple subplots.</div>
+    </section>
+
+    <section class="card">
+      <h3>Your First Line Plot <span class="tag">Example</span></h3>
+      <pre><code>import matplotlib.pyplot as plt
+
+x = [1, 2, 3, 4, 5]
+y = [2, 4, 3, 8, 6]
+
+fig, ax = plt.subplots(figsize=(6, 4))
+ax.plot(x, y)
+ax.set_xlabel("Day")
+ax.set_ylabel("Sales (in ₹1000s)")
+ax.set_title("Weekly Sales Trend")
+plt.show()</code></pre>
+      <p>Every chart in this tutorial follows the same 4-step rhythm: <b>create</b> → <b>plot</b> → <b>label</b> → <b>show/save</b>. Internalize this rhythm before moving on.</p>
+    </section>
+
+    <section class="card">
+      <h3>Scatter and Bar Charts <span class="tag">Example</span></h3>
+      <pre><code># Scatter — good for relationship between two numeric variables
+ax.scatter(x, y, color="tomato", s=60)
+
+# Bar — good for comparing categories
+categories = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+values = [12, 19, 7, 15, 10]
+ax.bar(categories, values, color="steelblue")</code></pre>
+      <div class="analogy"><b>Choosing a chart:</b> line = trend over a continuous axis (time). Scatter = relationship/correlation between two variables. Bar = comparison across discrete categories.</div>
+      <div class="exercise">
+        <div class="ex-title">Try it yourself</div>
+        Write code that plots a bar chart of five subjects' marks: Math=88, Physics=75, Chem=92, Bio=67, CS=95. Add a title and a y-axis label "Marks".
+        <details class="solution">
+          <summary>Show solution</summary>
+          <pre><code>subjects = ["Math","Physics","Chem","Bio","CS"]
+marks = [88, 75, 92, 67, 95]
+
+fig, ax = plt.subplots()
+ax.bar(subjects, marks, color="mediumseagreen")
+ax.set_ylabel("Marks")
+ax.set_title("Subject-wise Marks")
+plt.show()</code></pre>
+        </details>
+      </div>
+    </section>
+
+    <div class="takeaways">
+      <h4>Key Takeaways</h4>
+      <ul>
+        <li>Figure = whole canvas; Axes = individual plot area. <code>fig, ax = plt.subplots()</code> is the standard starting line.</li>
+        <li>Prefer the object-oriented API (<code>ax.plot</code>, <code>ax.bar</code>) over bare <code>plt.plot</code> once a script grows beyond a single quick plot.</li>
+        <li>Chart type follows the question: trend → line, relationship → scatter, comparison → bar.</li>
+      </ul>
+    </div>
+
+    <div class="quiz" id="quiz-1" data-module="1">
+      <h3>📝 Module 1 Quiz</h3>
+      <div class="qlist"></div>
+      <div class="quiz-actions">
+        <button class="btn" onclick="submitQuiz(1)">Submit Answers</button>
+        <button class="btn secondary" style="display:none" id="retry-1" onclick="resetQuiz(1)">Retry Quiz</button>
+      </div>
+      <div class="score-summary" id="summary-1"></div>
+    </div>
+  </div>
+  <div class="locked-banner"><div class="box"><div class="lock-icon">🔒</div>Complete previous module's quiz to unlock</div></div>
+</div>
+
+<!-- ================= MODULE 2 ================= -->
+<div class="module locked" id="module-2" data-module="2">
+  <div class="module-head">
+    <div class="mod-num" id="modnum-2">2</div>
+    <div><h2>Styling & Communication — Making Charts Readable</h2><div class="diff">Difficulty: ● ● ○ ○ Beginner–Intermediate</div></div>
+  </div>
+  <div class="module-content">
+
+    <section class="card">
+      <h3>Why Styling Matters <span class="tag">Intuition</span></h3>
+      <p>A correct chart that's unreadable is a failed chart. This module covers everything that turns a "plot" into a "figure someone can understand in 3 seconds": colors, line styles, markers, titles, legends, and annotations.</p>
+      <div class="analogy"><b>Analogy:</b> if Module 1 taught you to build furniture, this module teaches interior design — same object, but now it actually communicates something to the person walking into the room.</div>
+    </section>
+
+    <section class="card">
+      <h3>Colors, Line Styles & Markers <span class="tag">Example</span></h3>
+      <pre><code>ax.plot(x, y1, color="#5eead4", linestyle="--", marker="o", label="Product A")
+ax.plot(x, y2, color="#7c9cff", linestyle="-",  marker="s", label="Product B")
+
+ax.set_title("Product Comparison", fontsize=14, fontweight="bold")
+ax.set_xlabel("Month")
+ax.set_ylabel("Revenue (₹L)")
+ax.legend(loc="upper left")
+ax.grid(alpha=0.3)</code></pre>
+      <table class="cmp">
+        <tr><th>Parameter</th><th>Values</th><th>Effect</th></tr>
+        <tr><td><code>linestyle</code></td><td><code>'-' '--' ':' '-.'</code></td><td>solid / dashed / dotted / dash-dot</td></tr>
+        <tr><td><code>marker</code></td><td><code>'o' 's' '^' 'x'</code></td><td>circle / square / triangle / x at each data point</td></tr>
+        <tr><td><code>color</code></td><td>name, hex, or <code>'C0'..'C9'</code></td><td>line/marker/bar color</td></tr>
+        <tr><td><code>alpha</code></td><td>0.0 – 1.0</td><td>transparency</td></tr>
+      </table>
+    </section>
+
+    <section class="card">
+      <h3>Legends & Annotations <span class="tag">Example</span></h3>
+      <pre><code># Point out a specific data point
+ax.annotate("Peak sales", xy=(4, 8), xytext=(4.3, 8.5),
+            arrowprops=dict(arrowstyle="->", color="orange"))
+
+# Legend with a custom location and no border
+ax.legend(loc="best", frameon=False)</code></pre>
+      <div class="misconception"><b>Common misconception:</b> "the legend appears automatically." It only appears if (a) you passed <code>label=</code> to each plot call <b>and</b> (b) you call <code>ax.legend()</code>. Forgetting either is the #1 cause of "why is my legend empty/missing" questions.</div>
+    </section>
+
+    <section class="card">
+      <h3>Labeling Checklist <span class="tag">Comparison</span></h3>
+      <table class="cmp">
+        <tr><th>Element</th><th>Method</th><th>Skip it and...</th></tr>
+        <tr><td>Title</td><td><code>ax.set_title()</code></td><td>Viewer doesn't know what the chart is about</td></tr>
+        <tr><td>Axis labels</td><td><code>ax.set_xlabel/ylabel()</code></td><td>Units are ambiguous (₹? %? count?)</td></tr>
+        <tr><td>Legend</td><td><code>ax.legend()</code></td><td>Multiple series become indistinguishable</td></tr>
+        <tr><td>Gridlines</td><td><code>ax.grid()</code></td><td>Harder to read precise values (use sparingly)</td></tr>
+      </table>
+      <div class="exercise">
+        <div class="ex-title">Try it yourself</div>
+        Plot two lines (temperatures for two cities over a week) with different colors, dashed vs solid linestyles, markers, a title, axis labels, and a legend.
+        <details class="solution">
+          <summary>Show solution</summary>
+          <pre><code>days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+delhi = [38, 39, 41, 40, 37, 36, 38]
+shimla = [21, 22, 20, 19, 23, 22, 21]
+
+fig, ax = plt.subplots(figsize=(7,4))
+ax.plot(days, delhi, color="tomato", linestyle="-", marker="o", label="Delhi")
+ax.plot(days, shimla, color="steelblue", linestyle="--", marker="s", label="Shimla")
+ax.set_title("Temperature Comparison: Delhi vs Shimla")
+ax.set_xlabel("Day"); ax.set_ylabel("Temp (°C)")
+ax.legend()
+ax.grid(alpha=0.3)
+plt.show()</code></pre>
+        </details>
+      </div>
+    </section>
+
+    <div class="takeaways">
+      <h4>Key Takeaways</h4>
+      <ul>
+        <li>Legends need both <code>label=</code> on each series and an explicit <code>ax.legend()</code> call.</li>
+        <li>Title + axis labels + units are non-negotiable for any chart leaving your notebook.</li>
+        <li>Use color/linestyle/marker together (not just color) so charts stay readable in grayscale or for colorblind viewers.</li>
+      </ul>
+    </div>
+
+    <div class="quiz" id="quiz-2" data-module="2">
+      <h3>📝 Module 2 Quiz</h3>
+      <div class="qlist"></div>
+      <div class="quiz-actions">
+        <button class="btn" onclick="submitQuiz(2)">Submit Answers</button>
+        <button class="btn secondary" style="display:none" id="retry-2" onclick="resetQuiz(2)">Retry Quiz</button>
+      </div>
+      <div class="score-summary" id="summary-2"></div>
+    </div>
+  </div>
+  <div class="locked-banner"><div class="box"><div class="lock-icon">🔒</div>Complete previous module's quiz to unlock</div></div>
+</div>
+
+<!-- ================= MODULE 3 ================= -->
+<div class="module locked" id="module-3" data-module="3">
+  <div class="module-head">
+    <div class="mod-num" id="modnum-3">3</div>
+    <div><h2>Multi-Panel Layouts & More Chart Types</h2><div class="diff">Difficulty: ● ● ● ○ Intermediate</div></div>
+  </div>
+  <div class="module-content">
+
+    <section class="card">
+      <h3>Subplots: Many Axes, One Figure <span class="tag">Intuition</span></h3>
+      <p><code>plt.subplots(rows, cols)</code> returns a Figure and a <b>grid of Axes</b> (a NumPy array if more than one). You then plot on each axes individually — this is what powers dashboards.</p>
+      <pre><code>fig, axes = plt.subplots(2, 2, figsize=(10, 7))
+
+axes[0,0].plot(x, y1)
+axes[0,0].set_title("Line")
+
+axes[0,1].scatter(x, y2)
+axes[0,1].set_title("Scatter")
+
+axes[1,0].bar(categories, values)
+axes[1,0].set_title("Bar")
+
+axes[1,1].hist(data, bins=20)
+axes[1,1].set_title("Histogram")
+
+fig.tight_layout()   # prevents titles/labels overlapping
+plt.show()</code></pre>
+      <div class="diagram-box">
+        <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px;display:block;margin:0 auto;">
+          <rect x="5" y="5" width="490" height="210" rx="8" fill="#121822" stroke="#5eead4" stroke-width="2"/>
+          <rect x="25" y="25" width="210" height="80" rx="5" fill="#0a0e14" stroke="#7c9cff"/>
+          <text x="130" y="70" fill="#93a2b8" font-size="12" text-anchor="middle" font-family="monospace">axes[0,0]</text>
+          <rect x="255" y="25" width="210" height="80" rx="5" fill="#0a0e14" stroke="#7c9cff"/>
+          <text x="360" y="70" fill="#93a2b8" font-size="12" text-anchor="middle" font-family="monospace">axes[0,1]</text>
+          <rect x="25" y="120" width="210" height="80" rx="5" fill="#0a0e14" stroke="#7c9cff"/>
+          <text x="130" y="165" fill="#93a2b8" font-size="12" text-anchor="middle" font-family="monospace">axes[1,0]</text>
+          <rect x="255" y="120" width="210" height="80" rx="5" fill="#0a0e14" stroke="#7c9cff"/>
+          <text x="360" y="165" fill="#93a2b8" font-size="12" text-anchor="middle" font-family="monospace">axes[1,1]</text>
+        </svg>
+      </div>
+      <div class="misconception"><b>Common misconception:</b> forgetting <code>fig.tight_layout()</code> (or <code>constrained_layout=True</code>) leads to overlapping titles/labels between subplots — this is the most common "why does my subplot grid look broken" issue.</div>
+    </section>
+
+    <section class="card">
+      <h3>Histograms & Box Plots — Understanding Distributions <span class="tag">Example</span></h3>
+      <pre><code># Histogram — shape/spread of one numeric variable
+ax.hist(marks, bins=10, color="#5eead4", edgecolor="black")
+
+# Box plot — median, quartiles, outliers at a glance
+ax.boxplot([group_a, group_b, group_c], labels=["A","B","C"])</code></pre>
+      <table class="cmp">
+        <tr><th>Chart</th><th>Answers the question</th><th>Watch out for</th></tr>
+        <tr><td>Histogram</td><td>"What does the distribution look like?"</td><td><code>bins</code> count changes the story a lot — try a few values</td></tr>
+        <tr><td>Box plot</td><td>"Median, spread, and outliers per group?"</td><td>Hides multimodal distributions (two peaks look like one box)</td></tr>
+        <tr><td>Scatter</td><td>"Do X and Y move together?"</td><td>Overplotting with large datasets — use <code>alpha</code></td></tr>
+      </table>
+    </section>
+
+    <section class="card">
+      <h3>Sharing Axes Across Subplots <span class="tag">Example</span></h3>
+      <pre><code>fig, axes = plt.subplots(1, 2, sharey=True, figsize=(9,4))
+axes[0].plot(x, y1); axes[0].set_title("2023")
+axes[1].plot(x, y2); axes[1].set_title("2024")
+# sharey=True keeps the y-axis scale identical so the two years
+# are visually comparable — a subtle but important honesty check</code></pre>
+      <div class="analogy"><b>Analogy:</b> sharing axes is like putting two photos in identical frames before comparing them — if one photo is zoomed in and the other isn't, the comparison lies.</div>
+      <div class="exercise">
+        <div class="ex-title">Try it yourself</div>
+        Create a 1×2 subplot grid: left = histogram of 100 random exam scores, right = box plot comparing three sections' scores. Add titles to both.
+        <details class="solution">
+          <summary>Show solution</summary>
+          <pre><code>import numpy as np
+scores = np.random.normal(70, 10, 100)
+sec_a = np.random.normal(65, 8, 30)
+sec_b = np.random.normal(72, 6, 30)
+sec_c = np.random.normal(78, 9, 30)
+
+fig, axes = plt.subplots(1, 2, figsize=(10,4))
+axes[0].hist(scores, bins=15, color="skyblue", edgecolor="black")
+axes[0].set_title("Score Distribution")
+
+axes[1].boxplot([sec_a, sec_b, sec_c], labels=["A","B","C"])
+axes[1].set_title("Scores by Section")
+
+fig.tight_layout()
+plt.show()</code></pre>
+        </details>
+      </div>
+    </section>
+
+    <div class="takeaways">
+      <h4>Key Takeaways</h4>
+      <ul>
+        <li><code>plt.subplots(rows, cols)</code> gives you a grid of Axes to build dashboards from.</li>
+        <li>Always call <code>fig.tight_layout()</code> when using subplots to avoid overlap.</li>
+        <li>Histogram = distribution shape, box plot = summary stats + outliers per group; pick based on the question, not habit.</li>
+      </ul>
+    </div>
+
+    <div class="quiz" id="quiz-3" data-module="3">
+      <h3>📝 Module 3 Quiz</h3>
+      <div class="qlist"></div>
+      <div class="quiz-actions">
+        <button class="btn" onclick="submitQuiz(3)">Submit Answers</button>
+        <button class="btn secondary" style="display:none" id="retry-3" onclick="resetQuiz(3)">Retry Quiz</button>
+      </div>
+      <div class="score-summary" id="summary-3"></div>
+    </div>
+  </div>
+  <div class="locked-banner"><div class="box"><div class="lock-icon">🔒</div>Complete previous module's quiz to unlock</div></div>
+</div>
+
+<!-- ================= MODULE 4 ================= -->
+<div class="module locked" id="module-4" data-module="4">
+  <div class="module-head">
+    <div class="mod-num" id="modnum-4">4</div>
+    <div><h2>Mastery — Pandas Integration, Styling Themes & Export</h2><div class="diff">Difficulty: ● ● ● ● Advanced</div></div>
+  </div>
+  <div class="module-content">
+
+    <section class="card">
+      <h3>Plotting Directly From Pandas <span class="tag">Intuition</span></h3>
+      <p>Pandas' <code>.plot()</code> is a thin wrapper around Matplotlib — it returns an Axes, so you can keep customizing with the same <code>ax.</code> methods you already know. This is the workflow you'll use constantly in real analytics work.</p>
+      <pre><code>import pandas as pd
+
+df = pd.read_csv("sales.csv")
+fig, ax = plt.subplots(figsize=(8,4))
+df.plot(x="month", y="revenue", ax=ax, kind="line", color="#5eead4")
+ax.set_title("Monthly Revenue")
+ax.set_ylabel("Revenue (₹)")
+plt.show()</code></pre>
+      <div class="analogy"><b>Analogy:</b> <code>df.plot(ax=ax)</code> is like handing pandas your empty canvas (<code>ax</code>) and letting it sketch — then you pick up the pen (<code>ax.set_title</code>, etc.) to finish it.</div>
+    </section>
+
+    <section class="card">
+      <h3>Styles & Themes <span class="tag">Example</span></h3>
+      <pre><code>print(plt.style.available)   # list built-in themes
+plt.style.use("seaborn-v0_8-darkgrid")   # apply globally
+
+# or scope a style to one block only:
+with plt.style.context("ggplot"):
+    fig, ax = plt.subplots()
+    ax.plot(x, y)</code></pre>
+      <p>Styles set consistent defaults (colors, gridlines, fonts) across every chart in a script — critical for a professional-looking dashboard or report.</p>
+    </section>
+
+    <section class="card">
+      <h3>Exporting Publication-Quality Images <span class="tag">Example</span></h3>
+      <pre><code>fig.savefig("revenue_chart.png", dpi=300, bbox_inches="tight")
+fig.savefig("revenue_chart.svg")   # vector format, infinitely scalable</code></pre>
+      <table class="cmp">
+        <tr><th>Parameter</th><th>Why it matters</th></tr>
+        <tr><td><code>dpi=300</code></td><td>Print/high-res quality (default is ~100, fine for screens only)</td></tr>
+        <tr><td><code>bbox_inches="tight"</code></td><td>Removes excess whitespace around the figure</td></tr>
+        <tr><td>.svg / .pdf</td><td>Vector formats — scale without pixelation, ideal for reports/slides</td></tr>
+      </table>
+      <div class="misconception"><b>Common misconception:</b> "<code>plt.show()</code> saves the image." It only displays it — always use <code>fig.savefig()</code> before or instead of <code>plt.show()</code> if you need a file, and call <code>savefig</code> <b>before</b> <code>show()</code> since some backends clear the figure afterward.</div>
+    </section>
+
+    <section class="card">
+      <h3>Performance & Best Practices <span class="tag">Comparison</span></h3>
+      <table class="cmp">
+        <tr><th>Situation</th><th>Do</th><th>Avoid</th></tr>
+        <tr><td>Many subplots in a loop</td><td>Reuse <code>fig, axes</code> once outside the loop</td><td>Calling <code>plt.subplots()</code> inside the loop (memory leak)</td></tr>
+        <tr><td>Large scatter datasets</td><td><code>alpha=0.3</code>, smaller <code>s</code></td><td>Plotting 100k opaque points and calling it done</td></tr>
+        <tr><td>Multiple figures in a notebook</td><td><code>plt.close(fig)</code> when done</td><td>Letting dozens of open figures pile up in memory</td></tr>
+      </table>
+      <div class="exercise">
+        <div class="ex-title">Try it yourself</div>
+        Load a pandas DataFrame with columns "month" and "expenses", plot it as a bar chart using the <code>ggplot</code> style, and export it as a 300 dpi PNG named <code>expenses.png</code>.
+        <details class="solution">
+          <summary>Show solution</summary>
+          <pre><code>import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.DataFrame({
+    "month": ["Jan","Feb","Mar","Apr"],
+    "expenses": [4200, 3900, 5100, 4700]
+})
+
+with plt.style.context("ggplot"):
+    fig, ax = plt.subplots(figsize=(7,4))
+    df.plot(x="month", y="expenses", kind="bar", ax=ax, legend=False, color="#7c9cff")
+    ax.set_title("Monthly Expenses")
+    ax.set_ylabel("₹")
+    fig.savefig("expenses.png", dpi=300, bbox_inches="tight")
+plt.show()</code></pre>
+        </details>
+      </div>
+    </section>
+
+    <div class="takeaways">
+      <h4>Key Takeaways</h4>
+      <ul>
+        <li><code>df.plot(ax=ax)</code> bridges pandas and Matplotlib — same <code>ax.</code> methods apply afterward.</li>
+        <li>Use <code>plt.style.use()</code> for consistent visual themes across a whole report.</li>
+        <li><code>fig.savefig(dpi=300, bbox_inches="tight")</code> before <code>plt.show()</code> for clean, high-res exports.</li>
+      </ul>
+    </div>
+
+    <div class="quiz" id="quiz-4" data-module="4">
+      <h3>📝 Module 4 Quiz</h3>
+      <div class="qlist"></div>
+      <div class="quiz-actions">
+        <button class="btn" onclick="submitQuiz(4)">Submit Answers</button>
+        <button class="btn secondary" style="display:none" id="retry-4" onclick="resetQuiz(4)">Retry Quiz</button>
+      </div>
+      <div class="score-summary" id="summary-4"></div>
+    </div>
+  </div>
+  <div class="locked-banner"><div class="box"><div class="lock-icon">🔒</div>Complete previous module's quiz to unlock</div></div>
+</div>
+
+<!-- ================= FINAL CHALLENGE ================= -->
+<div class="module locked" id="module-final" data-module="final">
+  <div class="module-head">
+    <div class="mod-num" id="modnum-final">🏁</div>
+    <div><h2>Final Practical Challenge</h2><div class="diff">Combine everything you've learned</div></div>
+  </div>
+  <div class="module-content">
+    <section class="card">
+      <h3>Build a Mini Sales Dashboard</h3>
+      <p>Using a pandas DataFrame with columns <code>month</code>, <code>revenue</code>, and <code>region</code>, build a single Figure with a <b>2×2 subplot grid</b> containing:</p>
+      <ul style="color:var(--text-dim)">
+        <li>Top-left: line chart of total revenue by month, with title and axis labels</li>
+        <li>Top-right: bar chart comparing total revenue by region</li>
+        <li>Bottom-left: histogram of the revenue distribution</li>
+        <li>Bottom-right: box plot of revenue grouped by region</li>
+      </ul>
+      <p>Apply <code>plt.style.use("seaborn-v0_8-whitegrid")</code>, use <code>fig.tight_layout()</code>, and export the result as <code>dashboard.png</code> at 300 dpi.</p>
+      <div class="exercise">
+        <div class="ex-title">Reference solution</div>
+        <details class="solution">
+          <summary>Show full solution</summary>
+          <pre><code>import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.DataFrame({
+    "month": ["Jan","Feb","Mar","Apr","May","Jun"]*2,
+    "region": ["North"]*6 + ["South"]*6,
+    "revenue": [120,135,110,150,160,145, 90,100,95,120,130,125]
+})
+
+plt.style.use("seaborn-v0_8-whitegrid")
+fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+
+monthly = df.groupby("month")["revenue"].sum().reindex(
+    ["Jan","Feb","Mar","Apr","May","Jun"])
+axes[0,0].plot(monthly.index, monthly.values, marker="o", color="#2b6cb0")
+axes[0,0].set_title("Total Revenue by Month")
+axes[0,0].set_ylabel("Revenue")
+
+by_region = df.groupby("region")["revenue"].sum()
+axes[0,1].bar(by_region.index, by_region.values, color=["#2b6cb0","#e07798"])
+axes[0,1].set_title("Total Revenue by Region")
+
+axes[1,0].hist(df["revenue"], bins=8, color="#63b3ed", edgecolor="black")
+axes[1,0].set_title("Revenue Distribution")
+
+north = df[df.region=="North"]["revenue"]
+south = df[df.region=="South"]["revenue"]
+axes[1,1].boxplot([north, south], labels=["North","South"])
+axes[1,1].set_title("Revenue Spread by Region")
+
+fig.tight_layout()
+fig.savefig("dashboard.png", dpi=300, bbox_inches="tight")
+plt.show()</code></pre>
+        </details>
+      </div>
+      <button class="btn" onclick="completeFinal()">Mark Challenge Complete 🏆</button>
+      <span id="final-status" style="margin-left:12px; color:var(--ok); font-weight:700;"></span>
+    </section>
+
+    <section class="card">
+      <h3>📋 Cheat Sheet</h3>
+      <div class="cheat-grid">
+        <div class="cheat-card"><h4>Setup</h4><pre style="font-size:12.5px"><code>fig, ax = plt.subplots(figsize=(w,h))
+fig, axes = plt.subplots(r, c)</code></pre></div>
+        <div class="cheat-card"><h4>Plot types</h4><pre style="font-size:12.5px"><code>ax.plot(x,y)
+ax.scatter(x,y)
+ax.bar(cat,val)
+ax.hist(data, bins=n)
+ax.boxplot([g1,g2])</code></pre></div>
+        <div class="cheat-card"><h4>Labels</h4><pre style="font-size:12.5px"><code>ax.set_title()
+ax.set_xlabel() / set_ylabel()
+ax.legend()
+ax.grid(alpha=0.3)</code></pre></div>
+        <div class="cheat-card"><h4>Layout & export</h4><pre style="font-size:12.5px"><code>fig.tight_layout()
+plt.style.use("ggplot")
+fig.savefig("out.png", dpi=300,
+            bbox_inches="tight")</code></pre></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Summary Notes</h3>
+      <p style="color:var(--text-dim)">Matplotlib centers on the Figure/Axes model. Master the OO API (<code>fig, ax = plt.subplots()</code>) early — it scales cleanly from a single chart to a full dashboard. Chart choice should follow the question you're answering (trend, relationship, comparison, or distribution). Always label, always <code>tight_layout()</code> with subplots, and always <code>savefig(dpi=300, bbox_inches="tight")</code> for anything leaving your notebook.</p>
+      <button class="btn secondary print-btn" onclick="window.print()">🖨️ Print / Save Notes as PDF</button>
+    </section>
+
+    <section class="card">
+      <h3>Continue Learning</h3>
+      <div class="res-grid">
+        <div class="res-card"><h4>Documentation</h4><ul>
+          <li>Official Matplotlib docs (matplotlib.org)</li>
+          <li>Matplotlib "Anatomy of a Figure" reference page</li>
+          <li>Pandas visualization docs</li>
+        </ul></div>
+        <div class="res-card"><h4>Books</h4><ul>
+          <li><i>Python Data Science Handbook</i> — Jake VanderPlas (visualization chapter)</li>
+          <li><i>Storytelling with Data</i> — Cole Nussbaumer Knaflic</li>
+        </ul></div>
+        <div class="res-card"><h4>Practice Platforms</h4><ul>
+          <li>Kaggle notebooks (public datasets + visualization exercises)</li>
+          <li>Google Colab (free, no setup)</li>
+          <li>DataCamp / freeCodeCamp visualization tracks</li>
+        </ul></div>
+        <div class="res-card"><h4>Communities</h4><ul>
+          <li>r/learnpython, r/datascience</li>
+          <li>Matplotlib GitHub discussions</li>
+          <li>Stack Overflow [matplotlib] tag</li>
+        </ul></div>
+        <div class="res-card"><h4>Next Topics</h4><ul>
+          <li>Seaborn (built on Matplotlib, statistical charts)</li>
+          <li>Plotly (interactive charts)</li>
+          <li>Power BI / Tableau for BI dashboards</li>
+        </ul></div>
+        <div class="res-card"><h4>Search Keywords</h4>
+          <span class="kw">matplotlib subplots tutorial</span>
+          <span class="kw">matplotlib tight_layout</span>
+          <span class="kw">matplotlib vs seaborn</span>
+          <span class="kw">pandas plot() reference</span>
+          <span class="kw">matplotlib savefig dpi</span>
+        </div>
+      </div>
+      <h4 style="margin-top:20px; color:var(--accent);">AI Prompts for Further Learning</h4>
+      <ul style="color:var(--text-dim); font-size:14px;">
+        <li>"Explain the difference between fig.add_subplot and plt.subplots with examples."</li>
+        <li>"Show me how to build a 3x1 subplot dashboard for time-series data with shared x-axis."</li>
+        <li>"Review this Matplotlib code and tell me what's inefficient or non-idiomatic."</li>
+        <li>"How would I recreate this chart [describe/paste it] with best-practice Matplotlib code?"</li>
+      </ul>
+    </section>
+  </div>
+  <div class="locked-banner"><div class="box"><div class="lock-icon">🔒</div>Complete Module 4 quiz to unlock the Final Challenge</div></div>
+</div>
+
+<footer>Interactive Learning Studio · Matplotlib Fundamentals · Built for hands-on, self-paced mastery</footer>
+</div>
+
+<script>
+/* ================= Quiz data ================= */
+const QUIZZES = {
+  1: [
+    {q:"What does fig, ax = plt.subplots() create?", opts:[
+        "One Figure and one Axes object",
+        "Only a Figure, with no plotting area",
+        "A saved PNG file",
+        "A pandas DataFrame"],
+      correct:0, exp:"plt.subplots() with no arguments returns exactly one Figure and one Axes, ready for plotting."},
+    {q:"Which chart type is best for showing a relationship between two numeric variables?", opts:[
+        "Bar chart", "Scatter plot", "Pie chart", "Box plot"],
+      correct:1, exp:"Scatter plots are designed to reveal correlation/relationship patterns between two continuous variables."},
+    {q:"In the object-oriented API, which call sets the chart's title?", opts:[
+        "ax.title()", "plt.header()", "ax.set_title()", "fig.title()"],
+      correct:2, exp:"ax.set_title() is the OO-API method for setting a title on a specific Axes."},
+    {q:"True or false: plt.plot() and the OO API are two entirely different, incompatible libraries.", opts:[
+        "True — they can't be mixed", "False — plt.plot() is a shortcut that implicitly creates Figure/Axes"],
+      correct:1, exp:"pyplot functions are convenience wrappers around the same underlying Figure/Axes objects the OO API exposes directly."}
+  ],
+  2: [
+    {q:"What two things are required for a legend to appear correctly?", opts:[
+        "Just call ax.legend()",
+        "label= on each plotted series AND a call to ax.legend()",
+        "Only setting a title",
+        "Nothing — legends appear automatically"],
+      correct:1, exp:"Each series needs label=\"...\" and you must explicitly call ax.legend() to render it."},
+    {q:"Which linestyle string produces a dashed line?", opts:["'-'", "'--'", "':'", "'.'"], correct:1,
+      exp:"'--' is the dashed linestyle; '-' is solid, ':' is dotted."},
+    {q:"Why should you combine color with linestyle/marker instead of using color alone to distinguish series?", opts:[
+        "It looks fancier",
+        "Matplotlib requires it syntactically",
+        "It keeps charts readable in grayscale or for colorblind viewers",
+        "It's faster to render"],
+      correct:2, exp:"Relying on color alone can make series indistinguishable when printed in grayscale or viewed by colorblind readers."},
+    {q:"Which method adds a text callout pointing to a specific data point?", opts:[
+        "ax.callout()", "ax.annotate()", "ax.pointer()", "ax.text_arrow()"],
+      correct:1, exp:"ax.annotate() draws text with an optional arrow pointing at a given xy coordinate."}
+  ],
+  3: [
+    {q:"What does fig.tight_layout() fix?", opts:[
+        "Slow rendering speed",
+        "Overlapping titles/labels between subplots",
+        "Wrong data being plotted",
+        "Missing legends"],
+      correct:1, exp:"tight_layout() automatically adjusts spacing so subplot titles/labels don't overlap."},
+    {q:"Which chart best shows the shape/spread of a single numeric variable's distribution?", opts:[
+        "Bar chart", "Line chart", "Histogram", "Scatter plot"],
+      correct:2, exp:"Histograms bucket values into bins to visualize the distribution shape of one numeric variable."},
+    {q:"In a 2x2 subplots() grid, how do you access the top-right Axes?", opts:[
+        "axes[2,1]", "axes[0,1]", "axes.topright", "axes[1,0]"],
+      correct:1, exp:"Axes grids are zero-indexed like NumPy arrays: row 0, column 1 is the top-right."},
+    {q:"What does sharey=True do when creating subplots?", opts:[
+        "Shares the same title across subplots",
+        "Forces all subplots to use the same y-axis scale for fair comparison",
+        "Merges the subplots into one",
+        "Removes the y-axis entirely"],
+      correct:1, exp:"sharey=True keeps y-axis limits consistent across subplots so visual comparisons aren't distorted by different scales."}
+  ],
+  4: [
+    {q:"What does df.plot(ax=ax) return / rely on?", opts:[
+        "A brand-new plotting library separate from Matplotlib",
+        "The same Matplotlib Axes object, letting you keep customizing with ax. methods",
+        "A static image only, no further edits possible",
+        "An Excel chart object"],
+      correct:1, exp:"Pandas' .plot() is a thin wrapper around Matplotlib — passing ax= lets it draw onto your existing Axes."},
+    {q:"Which savefig parameter increases image resolution for print/publication?", opts:[
+        "quality=high", "dpi=300", "resolution='max'", "scale=3"],
+      correct:1, exp:"dpi (dots per inch) controls resolution; 300 is a common publication-quality value."},
+    {q:"Why must fig.savefig() typically be called before plt.show()?", opts:[
+        "It's just convention, order doesn't matter",
+        "show() can clear/close the figure on some backends, so saving after may produce a blank file",
+        "savefig() requires the window to be closed first",
+        "It doesn't matter, but savefig is faster before"],
+      correct:1, exp:"Depending on the backend, plt.show() can clear the figure afterward — saving first avoids blank or missing output files."},
+    {q:"What's the risk of calling plt.subplots() repeatedly inside a loop without closing figures?", opts:[
+        "Nothing, it's fully safe",
+        "Faster rendering",
+        "Memory builds up from many open Figure objects",
+        "It automatically overwrites the previous figure"],
+      correct:2, exp:"Each subplots() call creates a new Figure in memory; without plt.close(fig), these accumulate and consume memory."}
+  ]
+};
+
+const state = JSON.parse(localStorage.getItem('mplStudioState') || '{}');
+state.points = state.points || 0;
+state.passed = state.passed || {};
+state.finalDone = state.finalDone || false;
+
+function saveState(){ localStorage.setItem('mplStudioState', JSON.stringify(state)); }
+
+function renderQuiz(modNum){
+  const container = document.querySelector('#quiz-'+modNum+' .qlist');
+  const qs = QUIZZES[modNum];
+  container.innerHTML = qs.map((item, qi) => `
+    <div class="qitem" data-qi="${qi}">
+      <p class="qtext">${qi+1}. ${item.q}</p>
+      <div class="opts">
+        ${item.opts.map((o,oi)=>`<div class="opt" data-oi="${oi}" onclick="selectOpt(${modNum},${qi},${oi})">${o}</div>`).join('')}
+      </div>
+      <div class="explain" id="exp-${modNum}-${qi}"></div>
+    </div>
+  `).join('');
+}
+
+const selections = {};
+function selectOpt(mod, qi, oi){
+  const key = mod+'-'+qi;
+  if(document.getElementById('summary-'+mod).classList.contains('pass') ||
+     document.getElementById('summary-'+mod).classList.contains('fail')) return;
+  selections[key] = oi;
+  document.querySelectorAll(`#quiz-${mod} .qitem[data-qi="${qi}"] .opt`).forEach(el=>{
+    el.classList.toggle('selected', parseInt(el.dataset.oi)===oi);
+  });
+}
+
+function submitQuiz(mod){
+  const qs = QUIZZES[mod];
+  let score = 0;
+  qs.forEach((item, qi)=>{
+    const key = mod+'-'+qi;
+    const chosen = selections[key];
+    const optsEls = document.querySelectorAll(`#quiz-${mod} .qitem[data-qi="${qi}"] .opt`);
+    optsEls.forEach(el=>{
+      const oi = parseInt(el.dataset.oi);
+      if(oi === item.correct) el.classList.add('correct');
+      else if(oi === chosen) el.classList.add('wrong');
+      el.style.pointerEvents = 'none';
+    });
+    const expEl = document.getElementById(`exp-${mod}-${qi}`);
+    expEl.textContent = "Explanation: " + item.exp;
+    expEl.classList.add('show');
+    if(chosen === item.correct) score++;
+  });
+  const total = qs.length;
+  const pct = Math.round((score/total)*100);
+  const summary = document.getElementById('summary-'+mod);
+  const passed = pct >= 75;
+  summary.className = 'score-summary ' + (passed ? 'pass' : 'fail');
+  summary.textContent = passed
+    ? `✅ ${score}/${total} correct (${pct}%) — Module passed! +25 points.`
+    : `❌ ${score}/${total} correct (${pct}%) — Need 75%+ to unlock next module. Review and retry.`;
+  document.getElementById('retry-'+mod).style.display = 'inline-block';
+
+  if(passed && !state.passed[mod]){
+    state.passed[mod] = true;
+    state.points += 25;
+    saveState();
+    unlockNext(mod);
+  }
+  updateProgress();
+}
+
+function resetQuiz(mod){
+  Object.keys(selections).forEach(k=>{ if(k.startsWith(mod+'-')) delete selections[k]; });
+  document.getElementById('summary-'+mod).className = 'score-summary';
+  document.getElementById('summary-'+mod).textContent = '';
+  document.getElementById('retry-'+mod).style.display = 'none';
+  renderQuiz(mod);
+}
+
+function unlockNext(mod){
+  const nextId = mod < 4 ? 'module-'+(mod+1) : 'module-final';
+  const nextEl = document.getElementById(nextId);
+  if(nextEl){ nextEl.classList.remove('locked'); }
+  const numEl = document.getElementById('modnum-'+mod);
+  if(numEl){ numEl.classList.add('done'); numEl.textContent='✓'; }
+}
+
+function completeFinal(){
+  if(!state.finalDone){
+    state.finalDone = true;
+    state.points += 20;
+    saveState();
+  }
+  document.getElementById('final-status').textContent = "Challenge marked complete — badge earned! 🏆";
+  document.getElementById('modnum-final').classList.add('done');
+  document.getElementById('modnum-final').textContent='✓';
+  updateProgress();
+}
+
+function updateProgress(){
+  const totalSteps = 5; // 4 modules + final
+  let done = Object.keys(state.passed).length + (state.finalDone?1:0);
+  const pct = Math.round((done/totalSteps)*100);
+  document.getElementById('progress-fill').style.width = pct+'%';
+  document.getElementById('points').textContent = '⭐ '+state.points+' pts';
+}
+
+function restoreState(){
+  Object.keys(state.passed).forEach(mod=>{
+    if(state.passed[mod]) unlockNext(parseInt(mod));
+  });
+  if(state.finalDone){
+    document.getElementById('modnum-final').classList.add('done');
+    document.getElementById('modnum-final').textContent='✓';
+    document.getElementById('final-status').textContent = "Challenge marked complete — badge earned! 🏆";
+  }
+  updateProgress();
+}
+
+[1,2,3,4].forEach(renderQuiz);
+restoreState();
+</script>
+</body>
+</html>
