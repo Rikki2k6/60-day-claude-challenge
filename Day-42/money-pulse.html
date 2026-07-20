@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Money Pulse — Your Financial Command Center</title>
+<style>
+  :root{
+    --bg:#0E0B1A;
+    --bg-2:#151129;
+    --card:#1B1533;
+    --card-2:#211A3E;
+    --line:#332A5C;
+    --text:#F3F0FF;
+    --text-dim:#A79FD1;
+    --violet:#7C5CFC;
+    --violet-2:#9C7BFF;
+    --pink:#FF3D81;
+    --lime:#00E0B8;
+    --amber:#FFB020;
+    --red:#FF5C5C;
+    --grad-1: linear-gradient(135deg,#7C5CFC 0%, #FF3D81 100%);
+    --grad-2: linear-gradient(135deg,#00E0B8 0%, #7C5CFC 100%);
+    --grad-3: linear-gradient(135deg,#FFB020 0%, #FF3D81 100%);
+    --radius:18px;
+    --shadow: 0 20px 60px -20px rgba(124,92,252,0.35);
+  }
+  [data-theme="light"]{
+    --bg:#F5F3FF;
+    --bg-2:#EDE9FE;
+    --card:#FFFFFF;
+    --card-2:#F8F6FF;
+    --line:#E1DAFB;
+    --text:#1B1533;
+    --text-dim:#655C8A;
+    --shadow: 0 20px 60px -20px rgba(124,92,252,0.25);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 10% 0%, rgba(124,92,252,0.25), transparent 40%),
+      radial-gradient(circle at 90% 10%, rgba(255,61,129,0.18), transparent 40%),
+      var(--bg);
+    color:var(--text);
+    font-family: -apple-system, "Segoe UI", "Inter", system-ui, sans-serif;
+    min-height:100vh;
+    transition: background .4s ease, color .4s ease;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{
+    font-family: "Segoe UI Semibold", -apple-system, system-ui, sans-serif;
+    letter-spacing:-0.02em;
+    margin:0;
+  }
+  .eyebrow{
+    text-transform:uppercase;
+    font-size:11px;
+    letter-spacing:0.14em;
+    color:var(--text-dim);
+    font-weight:700;
+    margin-bottom:6px;
+    display:block;
+  }
+  ::selection{background:var(--pink);color:#fff;}
+  a{color:var(--violet-2);}
+  button{font-family:inherit;cursor:pointer;}
+  input,select{font-family:inherit;}
+
+  /* ===== Top bar ===== */
+  .topbar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:20px 32px;
+    position:sticky;top:0;z-index:50;
+    backdrop-filter: blur(14px);
+    background:rgba(14,11,26,0.7);
+    border-bottom:1px solid var(--line);
+  }
+  [data-theme="light"] .topbar{background:rgba(245,243,255,0.75);}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand .mark{
+    width:38px;height:38px;border-radius:11px;
+    background:var(--grad-1);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;color:#fff;font-size:16px;
+    box-shadow:0 8px 20px -6px rgba(255,61,129,0.6);
+    flex-shrink:0;
+  }
+  .brand-text .name{font-size:17px;font-weight:800;}
+  .brand-text .tag{font-size:11px;color:var(--text-dim);}
+  .top-actions{display:flex;gap:10px;align-items:center;}
+  .icon-btn{
+    width:40px;height:40px;border-radius:12px;
+    border:1px solid var(--line);background:var(--card);
+    color:var(--text);display:flex;align-items:center;justify-content:center;
+    font-size:16px;transition:.2s;
+  }
+  .icon-btn:hover{border-color:var(--violet);transform:translateY(-2px);}
+  .btn{
+    border:none;border-radius:12px;padding:10px 18px;font-weight:700;font-size:13px;
+    background:var(--grad-1);color:#fff;transition:.2s;
+  }
+  .btn:hover{filter:brightness(1.1);transform:translateY(-2px);}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text);}
+
+  /* ===== Layout ===== */
+  .wrap{max-width:1280px;margin:0 auto;padding:28px 32px 80px;}
+  .hero{
+    display:grid;grid-template-columns: 1.3fr 1fr;gap:22px;margin-bottom:26px;
+  }
+  @media (max-width:900px){.hero{grid-template-columns:1fr;}}
+
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:24px;position:relative;overflow:hidden;
+  }
+  .card.glow::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(circle at 100% 0%, rgba(124,92,252,0.25), transparent 55%);
+    pointer-events:none;
+  }
+
+  /* ===== Pulse Gauge (signature element) ===== */
+  .pulse-card{display:flex;gap:26px;align-items:center;}
+  .pulse-ring-wrap{position:relative;width:168px;height:168px;flex-shrink:0;}
+  .pulse-ring-wrap svg{transform:rotate(-90deg);}
+  .pulse-center{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  }
+  .pulse-score{font-size:40px;font-weight:800;line-height:1;background:var(--grad-1);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .pulse-label{font-size:11px;color:var(--text-dim);margin-top:4px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
+  .pulse-info h1{font-size:22px;margin-bottom:6px;}
+  .pulse-info p{color:var(--text-dim);font-size:13.5px;line-height:1.55;margin:0 0 14px;max-width:340px;}
+  .pulse-chips{display:flex;gap:8px;flex-wrap:wrap;}
+  .chip{
+    font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:100px;
+    background:var(--card-2);border:1px solid var(--line);
+  }
+  .chip.good{color:var(--lime);border-color:rgba(0,224,184,0.4);}
+  .chip.warn{color:var(--amber);border-color:rgba(255,176,32,0.4);}
+  .chip.bad{color:var(--red);border-color:rgba(255,92,92,0.4);}
+
+  .stat-strip{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .stat{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px;
+  }
+  .stat .k{font-size:22px;font-weight:800;}
+  .stat .l{font-size:11.5px;color:var(--text-dim);margin-top:4px;font-weight:600;}
+  .stat.up .k{color:var(--lime);}
+  .stat.down .k{color:var(--pink);}
+
+  /* ===== Section headers ===== */
+  .section{margin:38px 0 18px;}
+  .section-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+  .section-head h2{font-size:19px;}
+  .section-head .sub{font-size:12.5px;color:var(--text-dim);margin-top:4px;}
+
+  .grid-2{display:grid;grid-template-columns:1.1fr 0.9fr;gap:20px;}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media (max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+  /* ===== Editable rows ===== */
+  .row-list{display:flex;flex-direction:column;gap:10px;}
+  .row-item{
+    display:flex;align-items:center;gap:10px;padding:12px 14px;
+    background:var(--card-2);border:1px solid var(--line);border-radius:12px;
+  }
+  .row-item .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .row-item input[type=text]{
+    background:transparent;border:none;color:var(--text);font-weight:700;font-size:13.5px;
+    width:auto;flex:1;min-width:60px;
+  }
+  .row-item input[type=number]{
+    background:var(--bg-2);border:1px solid var(--line);border-radius:8px;color:var(--text);
+    width:90px;padding:6px 8px;font-size:13px;text-align:right;font-weight:700;
+  }
+  .row-item .cur{color:var(--text-dim);font-size:12px;}
+  .row-item .del{background:none;border:none;color:var(--text-dim);font-size:15px;padding:2px 6px;}
+  .row-item .del:hover{color:var(--red);}
+  .add-row{
+    display:flex;gap:8px;margin-top:2px;
+  }
+  .add-row input{
+    background:var(--card-2);border:1px dashed var(--line);border-radius:10px;color:var(--text);
+    padding:8px 10px;font-size:13px;
+  }
+  .add-row input[name=name]{flex:1;}
+  .add-row input[name=amt]{width:100px;}
+  .add-row button{border-radius:10px;border:1px dashed var(--line);background:transparent;color:var(--violet-2);font-weight:700;padding:8px 14px;font-size:13px;}
+
+  /* ===== Budget bars ===== */
+  .bar-row{margin-bottom:14px;}
+  .bar-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;}
+  .bar-top .name{font-weight:700;}
+  .bar-top .nums{color:var(--text-dim);font-size:12px;}
+  .bar-track{height:9px;border-radius:6px;background:var(--card-2);overflow:hidden;border:1px solid var(--line);}
+  .bar-fill{height:100%;border-radius:6px;transition:width .5s ease;}
+
+  /* ===== Goals ===== */
+  .goal-card{
+    background:var(--card-2);border:1px solid var(--line);border-radius:14px;padding:16px;
+  }
+  .goal-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+  .goal-top h4{font-size:14.5px;}
+  .goal-top .pct{font-size:20px;font-weight:800;color:var(--violet-2);}
+  .goal-track{height:8px;border-radius:6px;background:var(--bg-2);overflow:hidden;margin:10px 0;border:1px solid var(--line);}
+  .goal-fill{height:100%;background:var(--grad-2);}
+  .goal-meta{display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-dim);}
+  .goal-eta{margin-top:8px;font-size:12px;color:var(--amber);font-weight:700;}
+
+  /* ===== What-if ===== */
+  .sim-card{display:flex;flex-direction:column;gap:16px;}
+  .sim-slider-row{display:flex;flex-direction:column;gap:6px;}
+  .sim-slider-row .lbl{display:flex;justify-content:space-between;font-size:13px;font-weight:700;}
+  input[type=range]{
+    -webkit-appearance:none;width:100%;height:6px;border-radius:6px;
+    background:var(--card-2);outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+    background:var(--grad-1);cursor:pointer;border:3px solid var(--card);box-shadow:0 0 0 1px var(--violet);
+  }
+  .sim-result{
+    background:var(--card-2);border:1px solid var(--line);border-radius:14px;padding:16px;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+  }
+  .sim-result .big{font-size:24px;font-weight:800;color:var(--lime);}
+
+  /* ===== Insights ===== */
+  .insight{
+    display:flex;gap:12px;padding:14px;border-radius:12px;background:var(--card-2);
+    border:1px solid var(--line);margin-bottom:10px;align-items:flex-start;
+  }
+  .insight .ico{
+    width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+    font-size:15px;flex-shrink:0;
+  }
+  .insight p{margin:0;font-size:13.5px;line-height:1.5;color:var(--text);}
+  .insight p b{color:var(--violet-2);}
+
+  /* ===== Health breakdown ===== */
+  .factor{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+  .factor .flabel{width:130px;font-size:12.5px;font-weight:700;flex-shrink:0;}
+  .factor .ftrack{flex:1;height:7px;border-radius:5px;background:var(--card-2);overflow:hidden;border:1px solid var(--line);}
+  .factor .ffill{height:100%;background:var(--grad-2);}
+  .factor .fval{width:36px;text-align:right;font-size:12px;color:var(--text-dim);font-weight:700;}
+
+  /* ===== Checklist ===== */
+  .checklist{display:flex;flex-direction:column;gap:8px;}
+  .check-item{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--card-2);border:1px solid var(--line);border-radius:10px;font-size:13.5px;}
+  .check-item input{width:17px;height:17px;accent-color:var(--violet);}
+  .check-item.done label{text-decoration:line-through;color:var(--text-dim);}
+
+  /* ===== Tips grid ===== */
+  .tip-card{
+    background:var(--card-2);border:1px solid var(--line);border-radius:14px;padding:16px;
+  }
+  .tip-card .n{font-size:11px;color:var(--pink);font-weight:800;letter-spacing:.06em;}
+  .tip-card p{font-size:13px;line-height:1.5;color:var(--text);margin:8px 0 0;}
+
+  /* ===== Resources ===== */
+  .res-link{
+    display:flex;justify-content:space-between;align-items:center;padding:12px 14px;
+    background:var(--card-2);border:1px solid var(--line);border-radius:10px;font-size:13.5px;margin-bottom:8px;
+  }
+  .res-link span.tag2{font-size:10.5px;color:var(--violet-2);font-weight:800;background:rgba(124,92,252,0.12);padding:3px 8px;border-radius:6px;}
+
+  footer{
+    text-align:center;padding:30px;color:var(--text-dim);font-size:12px;border-top:1px solid var(--line);margin-top:40px;
+  }
+
+  /* ===== Toast ===== */
+  #toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--card);border:1px solid var(--violet);color:var(--text);
+    padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;
+    opacity:0;pointer-events:none;transition:.3s;z-index:200;box-shadow:var(--shadow);
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media print{
+    .topbar,.icon-btn,.btn,.add-row,input[type=range],.sim-card button,footer{display:none !important;}
+    body{background:#fff;color:#000;}
+    .card,.stat,.row-item,.goal-card,.insight,.tip-card,.res-link{border:1px solid #ccc !important;background:#fff !important;}
+    .wrap{padding:0;}
+  }
+
+  input[readonly]{opacity:0.9;}
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;}
+</style>
+</head>
+<body data-theme="dark">
+
+<div class="topbar">
+  <div class="brand">
+    <div class="mark">₹</div>
+    <div class="brand-text">
+      <div class="name">Money Pulse</div>
+      <div class="tag">Command Center · Student</div>
+    </div>
+  </div>
+  <div class="top-actions">
+    <button class="icon-btn" id="themeToggle" title="Toggle theme">🌙</button>
+    <button class="icon-btn" id="printBtn" title="Print / Save report">🖨️</button>
+    <button class="btn ghost" id="resetBtn">Reset data</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="card glow pulse-card">
+      <div class="pulse-ring-wrap">
+        <svg width="168" height="168" viewBox="0 0 168 168">
+          <circle cx="84" cy="84" r="72" fill="none" stroke="var(--card-2)" stroke-width="14"/>
+          <circle id="pulseArc" cx="84" cy="84" r="72" fill="none" stroke="url(#pulseGrad)" stroke-width="14" stroke-linecap="round" stroke-dasharray="452" stroke-dashoffset="452"/>
+          <defs>
+            <linearGradient id="pulseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#7C5CFC"/>
+              <stop offset="100%" stop-color="#FF3D81"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="pulse-center">
+          <div class="pulse-score" id="healthScoreText">--</div>
+          <div class="pulse-label">Health score</div>
+        </div>
+      </div>
+      <div class="pulse-info">
+        <span class="eyebrow">This month's pulse</span>
+        <h1>Hey — here's where your money stands.</h1>
+        <p id="pulseSummary">Loading your numbers…</p>
+        <div class="pulse-chips" id="pulseChips"></div>
+      </div>
+    </div>
+
+    <div class="stat-strip">
+      <div class="stat" id="statAllowance"><div class="k">₹0</div><div class="l">Monthly allowance</div></div>
+      <div class="stat" id="statFixed"><div class="k">₹0</div><div class="l">Fixed obligations</div></div>
+      <div class="stat" id="statVariable"><div class="k">₹0</div><div class="l">Variable spent (est.)</div></div>
+      <div class="stat" id="statCushion"><div class="k">₹0</div><div class="l">Left for savings</div></div>
+    </div>
+  </div>
+
+  <!-- INCOME -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <h2>💰 Income</h2>
+        <div class="sub">Your monthly allowance — the number everything else is built on.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row-item">
+        <span class="dot" style="background:var(--lime)"></span>
+        <input type="text" value="Monthly allowance" readonly>
+        <span class="cur">₹</span>
+        <input type="number" id="incomeInput" value="17500" step="500">
+      </div>
+    </div>
+  </div>
+
+  <!-- FIXED + VARIABLE -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <h2>📌 Fixed Obligations</h2>
+        <div class="sub">Rent, EMI, bills — the money that leaves no matter what.</div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="row-list" id="fixedList"></div>
+        <div class="add-row">
+          <input type="text" name="name" id="fixedName" placeholder="e.g. Hostel rent">
+          <input type="number" name="amt" id="fixedAmt" placeholder="₹">
+          <button onclick="addFixed()">+ Add</button>
+        </div>
+      </div>
+      <div class="card">
+        <span class="eyebrow">Breakdown</span>
+        <canvas id="fixedChart" width="280" height="220" style="width:100%;max-width:280px;display:block;margin:0 auto;"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <h2>🛒 Variable Spending & Budgets</h2>
+        <div class="sub">Set a budget per category, log what you've actually spent. This is where overspending hides.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row-list" id="varList"></div>
+      <div class="add-row">
+        <input type="text" name="name" id="varName" placeholder="e.g. Food & mess">
+        <input type="number" name="amt" id="varBudget" placeholder="Budget ₹">
+        <input type="number" name="amt2" id="varSpent" placeholder="Spent ₹">
+        <button onclick="addVar()">+ Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBSCRIPTIONS -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <h2>📺 Subscriptions</h2>
+        <div class="sub">Recurring charges you might have forgotten about.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row-list" id="subList"></div>
+      <div class="add-row">
+        <input type="text" name="name" id="subName" placeholder="e.g. Spotify">
+        <input type="number" name="amt" id="subAmt" placeholder="₹/month">
+        <button onclick="addSub()">+ Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GOALS -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <h2>🎯 Savings Goals</h2>
+        <div class="sub">What you're actually saving toward — and when you'll get there at this pace.</div>
+      </div>
+    </div>
+    <div class="grid-3" id="goalGrid"></div>
+    <div class="card" style="margin-top:14px;">
+      <div class="add-row">
+        <input type="text" name="name" id="goalName" placeholder="Goal name">
+        <input type="number" name="amt" id="goalTarget" placeholder="Target ₹">
+        <input type="number" name="amt2" id="goalSaved" placeholder="Saved so far ₹">
+        <button onclick="addGoal()">+ Add goal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHAT IF -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <h2>🔮 What-If Simulator</h2>
+        <div class="sub">Drag to see how trimming a category changes your monthly cushion and goal timeline.</div>
+      </div>
+    </div>
+    <div class="card sim-card">
+      <div class="sim-slider-row">
+        <div class="lbl"><span>Cut variable spending by</span><span id="simPctLabel">0%</span></div>
+        <input type="range" id="simSlider" min="0" max="60" value="0">
+      </div>
+      <div class="sim-result">
+        <div>
+          <div style="font-size:12px;color:var(--text-dim);font-weight:700;">New monthly cushion</div>
+          <div class="big" id="simCushion">₹0</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--text-dim);font-weight:700;">Extra saved per year</div>
+          <div class="big" id="simYear">₹0</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--text-dim);font-weight:700;">First goal reached in</div>
+          <div class="big" id="simGoalTime">--</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEALTH SCORE BREAKDOWN + INSIGHTS -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <h2>🧠 Financial Health Breakdown</h2>
+        <div class="sub">How your score is calculated, and what's pulling it down.</div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card" id="factorCard"></div>
+      <div class="card" id="insightCard"></div>
+    </div>
+  </div>
+
+  <!-- CHECKLIST -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <h2>✅ Monthly Money Checklist</h2>
+        <div class="sub">Small habits, checked off. State saves automatically.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="checklist" id="checklist"></div>
+    </div>
+  </div>
+
+  <!-- TIPS -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <h2>💡 Tips for Students on a Tight Budget</h2>
+      </div>
+    </div>
+    <div class="grid-3" id="tipGrid"></div>
+  </div>
+
+  <!-- RESOURCES -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <h2>📚 Resources & Prompts to Level Up</h2>
+        <div class="sub">Try asking Claude these — copy a prompt and paste it into a chat.</div>
+      </div>
+    </div>
+    <div class="card" id="resList"></div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+<footer>Money Pulse — built for you, runs entirely in this browser. Nothing is sent anywhere; your data lives in this device's local storage.</footer>
+
+<script>
+/* ================= STATE ================= */
+const DEFAULTS = {
+  theme:'dark',
+  income:17500,
+  fixed:[
+    {name:'Rent / hostel', amt:6000},
+    {name:'Bike EMI', amt:1800},
+    {name:'Bills (electricity/wifi/phone)', amt:1500},
+  ],
+  variable:[
+    {name:'Food & mess', budget:4500, spent:4900},
+    {name:'Transport', budget:800, spent:750},
+    {name:'Personal / misc', budget:1500, spent:2100},
+  ],
+  subs:[
+    {name:'Mobile recharge', amt:249},
+    {name:'OTT / music', amt:149},
+  ],
+  goals:[
+    {name:'New Laptop', target:45000, saved:8000},
+    {name:'Emergency Fund', target:10000, saved:2500},
+  ],
+  checklist:[
+    {t:'Logged this week\'s spending', done:false},
+    {t:'Checked bank balance vs budget', done:false},
+    {t:'Moved something into savings', done:false},
+    {t:'Reviewed subscriptions for unused ones', done:false},
+    {t:'Compared actual spend to budget', done:false},
+  ],
+  simPct:0
+};
+
+let state = load();
+
+function load(){
+  try{
+    const raw = localStorage.getItem('moneyPulseState');
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULTS));
+}
+function save(){
+  localStorage.setItem('moneyPulseState', JSON.stringify(state));
+}
+function fmt(n){
+  n = Math.round(n);
+  return '₹' + n.toLocaleString('en-IN');
+}
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ================= THEME ================= */
+document.documentElement.setAttribute('data-theme', state.theme);
+document.body.setAttribute('data-theme', state.theme);
+document.getElementById('themeToggle').textContent = state.theme==='dark' ? '🌙' : '☀️';
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  state.theme = state.theme==='dark' ? 'light' : 'dark';
+  document.body.setAttribute('data-theme', state.theme);
+  document.getElementById('themeToggle').textContent = state.theme==='dark' ? '🌙' : '☀️';
+  save();
+  renderAll();
+});
+document.getElementById('printBtn').addEventListener('click', ()=>window.print());
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(confirm('Reset all data to defaults? This cannot be undone.')){
+    state = JSON.parse(JSON.stringify(DEFAULTS));
+    save(); renderAll(); toast('Data reset.');
+  }
+});
+
+/* ================= INCOME ================= */
+const incomeInput = document.getElementById('incomeInput');
+incomeInput.value = state.income;
+incomeInput.addEventListener('input', ()=>{
+  state.income = Number(incomeInput.value)||0;
+  save(); renderAll();
+});
+
+/* ================= FIXED ================= */
+const COLORS = ['#7C5CFC','#FF3D81','#00E0B8','#FFB020','#4CC9F0','#FF7B54'];
+
+function renderFixed(){
+  const list = document.getElementById('fixedList');
+  list.innerHTML='';
+  state.fixed.forEach((item, i)=>{
+    const row = document.createElement('div');
+    row.className='row-item';
+    row.innerHTML = `
+      <span class="dot" style="background:${COLORS[i%COLORS.length]}"></span>
+      <input type="text" value="${escapeHtml(item.name)}" data-i="${i}" class="fixedNameInput">
+      <span class="cur">₹</span>
+      <input type="number" value="${item.amt}" data-i="${i}" class="fixedAmtInput">
+      <button class="del" data-i="${i}" onclick="removeFixed(${i})">✕</button>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('.fixedNameInput').forEach(inp=>{
+    inp.addEventListener('input', e=>{ state.fixed[e.target.dataset.i].name = e.target.value; save(); });
+  });
+  list.querySelectorAll('.fixedAmtInput').forEach(inp=>{
+    inp.addEventListener('input', e=>{ state.fixed[e.target.dataset.i].amt = Number(e.target.value)||0; save(); renderAll(); });
+  });
+}
+function addFixed(){
+  const n = document.getElementById('fixedName').value.trim();
+  const a = Number(document.getElementById('fixedAmt').value)||0;
+  if(!n){toast('Enter a name first.');return;}
+  state.fixed.push({name:n, amt:a});
+  document.getElementById('fixedName').value='';
+  document.getElementById('fixedAmt').value='';
+  save(); renderAll();
+}
+function removeFixed(i){ state.fixed.splice(i,1); save(); renderAll(); }
+
+function drawFixedChart(){
+  const canvas = document.getElementById('fixedChart');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const total = state.fixed.reduce((s,i)=>s+i.amt,0);
+  const cx=140, cy=100, r=78;
+  if(total<=0){
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text-dim');
+    ctx.font='13px sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText('No fixed costs added yet', cx, cy);
+    return;
+  }
+  let start = -Math.PI/2;
+  state.fixed.forEach((item,i)=>{
+    const slice = (item.amt/total) * Math.PI*2;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,start,start+slice);
+    ctx.closePath();
+    ctx.fillStyle = COLORS[i%COLORS.length];
+    ctx.fill();
+    start += slice;
+  });
+  // donut hole
+  ctx.beginPath();
+  ctx.arc(cx,cy,44,0,Math.PI*2);
+  ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--card');
+  ctx.fill();
+  ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text');
+  ctx.font='bold 15px sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText(fmt(total), cx, cy+5);
+}
+
+/* ================= VARIABLE ================= */
+function renderVar(){
+  const list = document.getElementById('varList');
+  list.innerHTML='';
+  state.variable.forEach((item,i)=>{
+    const over = item.spent > item.budget;
+    const pct = item.budget>0 ? Math.min(100,(item.spent/item.budget)*100) : 0;
+    const wrap = document.createElement('div');
+    wrap.style.marginBottom='4px';
+    wrap.innerHTML = `
+      <div class="row-item" style="margin-bottom:6px;">
+        <span class="dot" style="background:${over?'var(--red)':COLORS[i%COLORS.length]}"></span>
+        <input type="text" value="${escapeHtml(item.name)}" data-i="${i}" class="varNameInput">
+        <span class="cur">budget ₹</span>
+        <input type="number" value="${item.budget}" data-i="${i}" class="varBudgetInput">
+        <span class="cur">spent ₹</span>
+        <input type="number" value="${item.spent}" data-i="${i}" class="varSpentInput">
+        <button class="del" onclick="removeVar(${i})">✕</button>
+      </div>
+      <div class="bar-track" style="margin-bottom:10px;"><div class="bar-fill" style="width:${pct}%;background:${over?'var(--red)':'linear-gradient(90deg,var(--violet),var(--pink))'}"></div></div>
+    `;
+    list.appendChild(wrap);
+  });
+  list.querySelectorAll('.varNameInput').forEach(inp=>inp.addEventListener('input', e=>{state.variable[e.target.dataset.i].name=e.target.value; save();}));
+  list.querySelectorAll('.varBudgetInput').forEach(inp=>inp.addEventListener('input', e=>{state.variable[e.target.dataset.i].budget=Number(e.target.value)||0; save(); renderAll();}));
+  list.querySelectorAll('.varSpentInput').forEach(inp=>inp.addEventListener('input', e=>{state.variable[e.target.dataset.i].spent=Number(e.target.value)||0; save(); renderAll();}));
+}
+function addVar(){
+  const n = document.getElementById('varName').value.trim();
+  const b = Number(document.getElementById('varBudget').value)||0;
+  const s = Number(document.getElementById('varSpent').value)||0;
+  if(!n){toast('Enter a category name.');return;}
+  state.variable.push({name:n,budget:b,spent:s});
+  document.getElementById('varName').value='';
+  document.getElementById('varBudget').value='';
+  document.getElementById('varSpent').value='';
+  save(); renderAll();
+}
+function removeVar(i){state.variable.splice(i,1); save(); renderAll();}
+
+/* ================= SUBSCRIPTIONS ================= */
+function renderSubs(){
+  const list = document.getElementById('subList');
+  list.innerHTML='';
+  state.subs.forEach((item,i)=>{
+    const row = document.createElement('div');
+    row.className='row-item';
+    row.innerHTML=`
+      <span class="dot" style="background:${COLORS[i%COLORS.length]}"></span>
+      <input type="text" value="${escapeHtml(item.name)}" data-i="${i}" class="subNameInput">
+      <span class="cur">₹/mo</span>
+      <input type="number" value="${item.amt}" data-i="${i}" class="subAmtInput">
+      <button class="del" onclick="removeSub(${i})">✕</button>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('.subNameInput').forEach(inp=>inp.addEventListener('input', e=>{state.subs[e.target.dataset.i].name=e.target.value; save();}));
+  list.querySelectorAll('.subAmtInput').forEach(inp=>inp.addEventListener('input', e=>{state.subs[e.target.dataset.i].amt=Number(e.target.value)||0; save(); renderAll();}));
+  if(state.subs.length===0){
+    list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;">No subscriptions added. Add recurring charges below.</div>';
+  }
+}
+function addSub(){
+  const n = document.getElementById('subName').value.trim();
+  const a = Number(document.getElementById('subAmt').value)||0;
+  if(!n){toast('Enter a subscription name.');return;}
+  state.subs.push({name:n,amt:a});
+  document.getElementById('subName').value='';
+  document.getElementById('subAmt').value='';
+  save(); renderAll();
+}
+function removeSub(i){state.subs.splice(i,1); save(); renderAll();}
+
+/* ================= GOALS ================= */
+function renderGoals(){
+  const grid = document.getElementById('goalGrid');
+  grid.innerHTML='';
+  const cushion = computeCushion();
+  state.goals.forEach((g,i)=>{
+    const pct = g.target>0 ? Math.min(100,(g.saved/g.target)*100) : 0;
+    const remaining = Math.max(0, g.target - g.saved);
+    let etaText = 'Add monthly cushion to estimate';
+    if(cushion > 0 && remaining > 0){
+      const months = Math.ceil(remaining / cushion);
+      etaText = `~${months} month${months>1?'s':''} at current pace`;
+    } else if(remaining<=0){
+      etaText = '🎉 Goal reached!';
+    } else if(cushion<=0){
+      etaText = 'No cushion left — reduce spending to progress';
+    }
+    const div = document.createElement('div');
+    div.className='goal-card';
+    div.innerHTML = `
+      <div class="goal-top">
+        <h4>${escapeHtml(g.name)}</h4>
+        <div class="pct">${pct.toFixed(0)}%</div>
+      </div>
+      <div class="goal-track"><div class="goal-fill" style="width:${pct}%"></div></div>
+      <div class="goal-meta"><span>${fmt(g.saved)} saved</span><span>Target ${fmt(g.target)}</span></div>
+      <div class="goal-eta">${etaText}</div>
+      <div class="add-row" style="margin-top:12px;">
+        <input type="number" placeholder="Add ₹" class="goalAddInput" data-i="${i}" style="width:100%;">
+        <button onclick="addToGoal(${i})">Add</button>
+      </div>
+      <button class="del" style="margin-top:8px;font-size:12px;" onclick="removeGoal(${i})">Remove goal ✕</button>
+    `;
+    grid.appendChild(div);
+  });
+}
+function addToGoal(i){
+  const inp = document.querySelector(`.goalAddInput[data-i="${i}"]`);
+  const val = Number(inp.value)||0;
+  if(val<=0){toast('Enter an amount to add.');return;}
+  state.goals[i].saved += val;
+  save(); renderAll();
+  toast(`Added ${fmt(val)} to ${state.goals[i].name}`);
+}
+function addGoal(){
+  const n = document.getElementById('goalName').value.trim();
+  const t = Number(document.getElementById('goalTarget').value)||0;
+  const s = Number(document.getElementById('goalSaved').value)||0;
+  if(!n || t<=0){toast('Enter a goal name and target amount.');return;}
+  state.goals.push({name:n,target:t,saved:s});
+  document.getElementById('goalName').value='';
+  document.getElementById('goalTarget').value='';
+  document.getElementById('goalSaved').value='';
+  save(); renderAll();
+}
+function removeGoal(i){state.goals.splice(i,1); save(); renderAll();}
+
+/* ================= COMPUTATIONS ================= */
+function computeFixedTotal(){ return state.fixed.reduce((s,i)=>s+i.amt,0); }
+function computeVarBudget(){ return state.variable.reduce((s,i)=>s+i.budget,0); }
+function computeVarSpent(){ return state.variable.reduce((s,i)=>s+i.spent,0); }
+function computeSubTotal(){ return state.subs.reduce((s,i)=>s+i.amt,0); }
+function computeCushion(){
+  return state.income - computeFixedTotal() - computeVarSpent() - computeSubTotal();
+}
+function computeOverspendCategories(){
+  return state.variable.filter(v=>v.spent > v.budget);
+}
+
+function computeHealthScore(){
+  const income = state.income || 1;
+  const fixed = computeFixedTotal();
+  const varSpent = computeVarSpent();
+  const varBudget = computeVarBudget();
+  const subs = computeSubTotal();
+  const cushion = computeCushion();
+
+  // Factor 1: Fixed obligation ratio (lower is better) — ideal < 45% of income
+  const fixedRatio = fixed/income;
+  const f1 = clamp(100 - Math.max(0,(fixedRatio-0.35))*220, 0, 100);
+
+  // Factor 2: Budget discipline — how much of variable budget is overspent
+  const overspend = state.variable.reduce((s,v)=>s+Math.max(0,v.spent-v.budget),0);
+  const f2 = clamp(100 - (overspend/income)*400, 0, 100);
+
+  // Factor 3: Savings cushion ratio
+  const cushionRatio = cushion/income;
+  const f3 = clamp(50 + cushionRatio*300, 0, 100);
+
+  // Factor 4: Goal progress (average % across goals)
+  let f4 = 50;
+  if(state.goals.length){
+    const avg = state.goals.reduce((s,g)=> s + (g.target>0? Math.min(1,g.saved/g.target):0), 0) / state.goals.length;
+    f4 = clamp(avg*100, 0, 100);
+  }
+
+  // Factor 5: Subscription load relative to income
+  const subRatio = subs/income;
+  const f5 = clamp(100 - subRatio*500, 0, 100);
+
+  const score = Math.round(f1*0.28 + f2*0.28 + f3*0.24 + f4*0.1 + f5*0.1);
+  return {score, factors:{
+    'Fixed cost ratio': Math.round(f1),
+    'Budget discipline': Math.round(f2),
+    'Savings cushion': Math.round(f3),
+    'Goal progress': Math.round(f4),
+    'Subscription load': Math.round(f5),
+  }};
+}
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+
+/* ================= RENDER: HERO ================= */
+function renderHero(){
+  const {score, factors} = computeHealthScore();
+  document.getElementById('healthScoreText').textContent = score;
+  const circumference = 452;
+  const offset = circumference - (circumference*score/100);
+  document.getElementById('pulseArc').style.strokeDashoffset = offset;
+
+  const cushion = computeCushion();
+  const fixed = computeFixedTotal();
+  const varSpent = computeVarSpent() + computeSubTotal();
+
+  let statusWord = score>=70 ? 'solid shape' : score>=45 ? 'a bit stretched' : 'under real pressure';
+  document.getElementById('pulseSummary').textContent =
+    `Your finances are in ${statusWord} this month. Fixed costs eat ${fmt(fixed)}, variable + subscriptions add ${fmt(varSpent)}, leaving ${fmt(cushion)} of your ${fmt(state.income)} allowance.`;
+
+  const chips = document.getElementById('pulseChips');
+  chips.innerHTML='';
+  const over = computeOverspendCategories();
+  if(cushion < 0){
+    chips.innerHTML += `<span class="chip bad">Overspent this month</span>`;
+  } else if(cushion < state.income*0.05){
+    chips.innerHTML += `<span class="chip warn">Very thin cushion</span>`;
+  } else {
+    chips.innerHTML += `<span class="chip good">Positive cushion</span>`;
+  }
+  if(over.length>0){
+    chips.innerHTML += `<span class="chip warn">${over.length} categor${over.length>1?'ies':'y'} over budget</span>`;
+  }
+  const fixedRatio = fixed/state.income;
+  if(fixedRatio > 0.5){
+    chips.innerHTML += `<span class="chip bad">Fixed costs &gt;50% of income</span>`;
+  }
+
+  document.querySelector('#statAllowance .k').textContent = fmt(state.income);
+  document.querySelector('#statFixed .k').textContent = fmt(fixed);
+  document.querySelector('#statVariable .k').textContent = fmt(varSpent);
+  const cushionEl = document.querySelector('#statCushion');
+  cushionEl.querySelector('.k').textContent = fmt(cushion);
+  cushionEl.className = 'stat ' + (cushion>=0?'up':'down');
+}
+
+/* ================= RENDER: FACTORS + INSIGHTS ================= */
+function renderFactors(){
+  const {factors} = computeHealthScore();
+  const card = document.getElementById('factorCard');
+  card.innerHTML = `<span class="eyebrow">Score components</span><h3 style="margin-bottom:16px;">What's driving your score</h3>`;
+  Object.entries(factors).forEach(([label,val])=>{
+    const row = document.createElement('div');
+    row.className='factor';
+    row.innerHTML = `
+      <div class="flabel">${label}</div>
+      <div class="ftrack"><div class="ffill" style="width:${val}%"></div></div>
+      <div class="fval">${val}</div>
+    `;
+    card.appendChild(row);
+  });
+}
+
+function renderInsights(){
+  const card = document.getElementById('insightCard');
+  card.innerHTML = `<span class="eyebrow">Auto-generated</span><h3 style="margin-bottom:16px;">Insights for you</h3>`;
+  const insights = [];
+  const fixed = computeFixedTotal();
+  const cushion = computeCushion();
+  const over = computeOverspendCategories();
+  const fixedRatio = fixed/(state.income||1);
+  const subTotal = computeSubTotal();
+
+  if(fixedRatio > 0.5){
+    insights.push({ico:'⚠️',color:'var(--red)',text:`Fixed obligations (rent + EMI + bills) take up <b>${(fixedRatio*100).toFixed(0)}%</b> of your allowance. That's a heavy load for a student budget — leaves little room to absorb a bad month.`});
+  }
+  if(over.length){
+    const names = over.map(o=>o.name).join(', ');
+    insights.push({ico:'📉',color:'var(--amber)',text:`You're over budget on <b>${escapeHtml(names)}</b>. Even ₹300–500 tightened here compounds fast across a year.`});
+  }
+  if(cushion < 0){
+    insights.push({ico:'🚨',color:'var(--red)',text:`You're spending <b>${fmt(Math.abs(cushion))}</b> more than your allowance this month. This is the single most important thing to fix before anything else.`});
+  } else if(cushion>0){
+    const yearly = cushion*12;
+    insights.push({ico:'📈',color:'var(--lime)',text:`At this pace you have <b>${fmt(cushion)}/month</b> free — that's <b>${fmt(yearly)}/year</b> if it consistently goes to savings instead of drifting into spending.`});
+  }
+  if(subTotal > 0 && subTotal/state.income > 0.03){
+    insights.push({ico:'📺',color:'var(--violet-2)',text:`Subscriptions cost <b>${fmt(subTotal)}/month</b>. Worth a quick audit — is everything on that list still being used weekly?`});
+  }
+  if(state.goals.length===0){
+    insights.push({ico:'🎯',color:'var(--violet-2)',text:`You haven't set a savings goal yet. A named goal (laptop, trip, emergency fund) makes cushion money far less likely to leak into random spending.`});
+  }
+  if(insights.length===0){
+    insights.push({ico:'✅',color:'var(--lime)',text:`Nothing alarming right now — budgets are holding and cushion is positive. Keep logging spending weekly to stay ahead of it.`});
+  }
+  insights.forEach(ins=>{
+    const div = document.createElement('div');
+    div.className='insight';
+    div.innerHTML = `<div class="ico" style="background:${ins.color}22;color:${ins.color}">${ins.ico}</div><p>${ins.text}</p>`;
+    card.appendChild(div);
+  });
+}
+
+/* ================= WHAT-IF SIMULATOR ================= */
+const simSlider = document.getElementById('simSlider');
+simSlider.value = state.simPct||0;
+simSlider.addEventListener('input', ()=>{
+  state.simPct = Number(simSlider.value);
+  save();
+  renderSim();
+});
+function renderSim(){
+  const pct = Number(simSlider.value);
+  document.getElementById('simPctLabel').textContent = pct+'%';
+  const varSpent = computeVarSpent();
+  const saved = varSpent * (pct/100);
+  const newCushion = computeCushion() + saved;
+  document.getElementById('simCushion').textContent = fmt(newCushion);
+  document.getElementById('simYear').textContent = fmt(saved*12);
+
+  let goalText = '--';
+  if(state.goals.length && newCushion>0){
+    const g = state.goals.reduce((a,b)=> (a.target-a.saved) < (b.target-b.saved) ? a : b);
+    const remaining = Math.max(0, g.target-g.saved);
+    if(remaining<=0){ goalText = 'Already reached'; }
+    else{
+      const months = Math.ceil(remaining/newCushion);
+      goalText = `${months} mo (${escapeHtml(g.name)})`;
+    }
+  }
+  document.getElementById('simGoalTime').textContent = goalText;
+}
+
+/* ================= CHECKLIST ================= */
+function renderChecklist(){
+  const el = document.getElementById('checklist');
+  el.innerHTML='';
+  state.checklist.forEach((item,i)=>{
+    const row = document.createElement('div');
+    row.className='check-item' + (item.done?' done':'');
+    row.innerHTML = `<input type="checkbox" id="chk${i}" ${item.done?'checked':''}><label for="chk${i}">${escapeHtml(item.t)}</label>`;
+    row.querySelector('input').addEventListener('change', e=>{
+      state.checklist[i].done = e.target.checked;
+      save(); renderChecklist();
+    });
+    el.appendChild(row);
+  });
+}
+
+/* ================= STATIC: TIPS + RESOURCES ================= */
+const TIPS = [
+  "Pay fixed costs (rent, EMI) the day allowance lands — treat it like it never touched your hands.",
+  "Track spending weekly, not monthly. Catching an overspend on day 10 is fixable; on day 28 it isn't.",
+  "Round up small recurring charges (recharge, OTT) and review them every 3 months — subscriptions creep silently.",
+  "Split cash mentally into 'fixed', 'flexible', and 'fun' the moment it arrives — decision fatigue is the real budget killer.",
+  "A ₹500/month cut sounds small but is ₹6,000/year — roughly a decent secondhand phone or a semester of course fees.",
+  "Keep one 'goal' visible somewhere physical (phone lock screen, wallet note) — named goals get funded before vague ones."
+];
+function renderTips(){
+  const grid = document.getElementById('tipGrid');
+  grid.innerHTML='';
+  TIPS.forEach((t,i)=>{
+    const div = document.createElement('div');
+    div.className='tip-card';
+    div.innerHTML = `<div class="n">TIP ${String(i+1).padStart(2,'0')}</div><p>${t}</p>`;
+    grid.appendChild(div);
+  });
+}
+
+const RESOURCES = [
+  {label:'Track my weekly spending pattern from a list of transactions I paste in', tag:'Prompt'},
+  {label:'Explain how a SIP works and whether ₹500/month makes sense for a student', tag:'Prompt'},
+  {label:'Review my monthly budget and flag 3 things I could realistically cut', tag:'Prompt'},
+  {label:'Kaggle — free datasets & courses to build analytical skills', tag:'Resource'},
+  {label:'RBI Financial Literacy resources for young earners', tag:'Resource'},
+];
+function renderResources(){
+  const el = document.getElementById('resList');
+  el.innerHTML='';
+  RESOURCES.forEach(r=>{
+    const row = document.createElement('div');
+    row.className='res-link';
+    row.innerHTML = `<span>${escapeHtml(r.label)}</span><span class="tag2">${r.tag}</span>`;
+    el.appendChild(row);
+  });
+}
+
+/* ================= UTIL ================= */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ================= MASTER RENDER ================= */
+function renderAll(){
+  renderHero();
+  renderFixed();
+  drawFixedChart();
+  renderVar();
+  renderSubs();
+  renderGoals();
+  renderFactors();
+  renderInsights();
+  renderSim();
+  renderChecklist();
+}
+renderTips();
+renderResources();
+renderAll();
+window.addEventListener('resize', drawFixedChart);
+</script>
+</body>
+</html>
