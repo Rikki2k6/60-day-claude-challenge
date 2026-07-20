@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Workflow Architect — Job-Hunting Portfolio Website</title>
+<style>
+  :root{
+    --bg:#0E1116;
+    --bg-alt:#151A22;
+    --surface:#1A2029;
+    --surface-hi:#212836;
+    --border:#2A3140;
+    --text:#E7E9EE;
+    --muted:#8B93A7;
+    --muted-2:#5B6579;
+    --accent:#6C63FF;
+    --accent-soft:#6C63FF22;
+    --amber:#FFB020;
+    --amber-soft:#FFB02022;
+    --green:#39D98A;
+    --green-soft:#39D98A22;
+    --red:#FF6B6B;
+    --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --radius: 10px;
+    --shadow: 0 8px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--accent); color:#fff;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 28px; background:rgba(14,17,22,.85); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px;}
+  .brand .mark{
+    width:26px; height:26px; border-radius:7px;
+    background:linear-gradient(135deg,var(--accent),#9E97FF);
+    display:flex; align-items:center; justify-content:center; font-size:13px; color:#fff; font-weight:800;
+  }
+  .brand small{display:block; color:var(--muted); font-weight:500; font-size:11.5px; letter-spacing:.3px;}
+  .topbar-actions{display:flex; gap:10px; align-items:center;}
+  .btn{
+    border:1px solid var(--border); background:var(--surface); color:var(--text);
+    padding:8px 14px; border-radius:8px; font-size:13px; cursor:pointer; font-family:var(--sans);
+    transition:.15s ease; display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn:hover{background:var(--surface-hi); border-color:var(--accent);}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600;}
+  .btn.primary:hover{background:#5b52ee;}
+  .progress-pill{
+    display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--muted);
+    background:var(--surface); border:1px solid var(--border); padding:6px 12px; border-radius:20px;
+  }
+  .progress-pill .bar{width:80px; height:6px; background:var(--border); border-radius:4px; overflow:hidden;}
+  .progress-pill .fill{height:100%; background:linear-gradient(90deg,var(--accent),var(--green)); width:0%; transition:width .4s ease;}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding:64px 28px 40px; max-width:980px; margin:0 auto; text-align:left;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px; font-size:12px; letter-spacing:1.2px; text-transform:uppercase;
+    color:var(--accent); font-weight:700; margin-bottom:16px;
+  }
+  .eyebrow::before{content:''; width:16px; height:1px; background:var(--accent);}
+  h1.title{font-size:clamp(30px,4.2vw,46px); margin:0 0 14px; font-weight:800; letter-spacing:-.5px; line-height:1.12;}
+  h1.title span{color:var(--muted-2);}
+  .subtitle{color:var(--muted); font-size:16px; max-width:640px; margin:0 0 28px;}
+  .hero-stats{display:flex; gap:28px; flex-wrap:wrap; margin-top:24px;}
+  .stat{border-left:2px solid var(--accent); padding-left:12px;}
+  .stat .n{font-size:22px; font-weight:800;}
+  .stat .l{font-size:12px; color:var(--muted);}
+
+  /* ---------- Nav rail ---------- */
+  .layout{display:grid; grid-template-columns:250px 1fr; max-width:1320px; margin:0 auto; gap:0; padding:0 28px 80px;}
+  @media (max-width:900px){ .layout{grid-template-columns:1fr;} .rail{position:static; margin-bottom:24px;} }
+  .rail{
+    position:sticky; top:74px; align-self:start; max-height:calc(100vh - 90px); overflow:auto;
+    padding-right:14px;
+  }
+  .rail h4{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted-2); margin:18px 0 8px;}
+  .rail-item{
+    display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; cursor:pointer;
+    color:var(--muted); font-size:13.5px; margin-bottom:2px; border:1px solid transparent;
+  }
+  .rail-item:hover{background:var(--surface); color:var(--text);}
+  .rail-item.active{background:var(--accent-soft); color:var(--text); border-color:var(--accent);}
+  .rail-item .dot{width:8px; height:8px; border-radius:50%; border:2px solid var(--muted-2); flex:none;}
+  .rail-item.done .dot{background:var(--green); border-color:var(--green);}
+  .rail-item .num{font-family:var(--mono); font-size:11px; color:var(--muted-2); width:16px;}
+
+  main{min-width:0;}
+
+  /* ---------- Section ---------- */
+  section.stage{
+    background:var(--bg-alt); border:1px solid var(--border); border-radius:16px;
+    padding:32px; margin-bottom:22px; scroll-margin-top:90px;
+  }
+  .stage-head{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:6px; flex-wrap:wrap;}
+  .stage-title{display:flex; align-items:center; gap:12px;}
+  .stage-title .badge{
+    width:38px; height:38px; border-radius:10px; background:var(--surface-hi); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-weight:700; color:var(--accent); flex:none;
+  }
+  .stage-title h2{margin:0; font-size:21px; font-weight:800;}
+  .stage-title p.tagline{margin:2px 0 0; color:var(--muted); font-size:13px;}
+  .stage-actions{display:flex; gap:8px; align-items:center;}
+  .checkbtn{
+    display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12.5px; color:var(--muted);
+    border:1px solid var(--border); padding:6px 10px; border-radius:8px; background:var(--surface); user-select:none;
+  }
+  .checkbtn.checked{background:var(--green-soft); color:var(--green); border-color:var(--green);}
+  .star{cursor:pointer; font-size:16px; color:var(--muted-2); border:1px solid var(--border); background:var(--surface); border-radius:8px; padding:5px 9px;}
+  .star.on{color:var(--amber); border-color:var(--amber);}
+  .time-est{font-size:11.5px; color:var(--muted-2); font-family:var(--mono); margin:10px 0 20px; display:flex; gap:14px; flex-wrap:wrap;}
+  .time-est b{color:var(--text);}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+  @media (max-width:700px){ .grid2{grid-template-columns:1fr;} }
+
+  h3.sub{font-size:12.5px; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin:22px 0 10px; display:flex; align-items:center; gap:8px;}
+  h3.sub::after{content:''; flex:1; height:1px; background:var(--border);}
+  ul.clean{margin:0; padding-left:18px; color:var(--text); font-size:14px;}
+  ul.clean li{margin-bottom:6px;}
+  ul.clean.muted-list li{color:var(--muted);}
+
+  .tool-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px;
+  }
+  .tool-card .row{display:flex; justify-content:space-between; align-items:center; gap:10px;}
+  .tool-card .name{font-weight:700; font-size:14px;}
+  .tool-card .tag{font-size:10.5px; background:var(--accent-soft); color:var(--accent); padding:2px 8px; border-radius:20px; font-weight:700;}
+  .tool-card .why{color:var(--muted); font-size:13px; margin-top:6px;}
+  .tool-card .alt{color:var(--muted-2); font-size:12px; margin-top:8px; font-style:italic;}
+
+  .prompt-box{
+    background:#0B0D12; border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:10px;
+    font-family:var(--mono); font-size:12.5px; color:#B9E6D8; position:relative; white-space:pre-wrap; line-height:1.6;
+  }
+  .prompt-box .copy{
+    position:absolute; top:10px; right:10px; font-family:var(--sans); font-size:11px; color:var(--muted);
+    background:var(--surface); border:1px solid var(--border); padding:3px 9px; border-radius:6px; cursor:pointer;
+  }
+  .prompt-box .copy:hover{color:var(--text); border-color:var(--accent);}
+
+  .callout{border-radius:10px; padding:14px 16px; font-size:13.5px; margin-bottom:10px; border:1px solid;}
+  .callout.mistake{background:#FF6B6B14; border-color:#FF6B6B44; color:#FFB4B4;}
+  .callout.mistake b{color:#FF9B9B;}
+  .callout.practice{background:var(--green-soft); border-color:#39D98A44; color:#B7F3D9;}
+  .callout.practice b{color:var(--green);}
+  .callout.output{background:var(--accent-soft); border-color:#6C63FF44; color:#CFCCFF;}
+
+  .notes-area{width:100%; min-height:80px; background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:var(--sans); font-size:13px; padding:10px; resize:vertical;}
+  .notes-area:focus{outline:none; border-color:var(--accent);}
+  .notes-label{font-size:11px; color:var(--muted-2); margin-top:16px; display:block;}
+
+  /* ---------- Decision tree ---------- */
+  .tree-box{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px;}
+  .tree-q{font-weight:700; margin-bottom:12px; font-size:14.5px;}
+  .tree-opts{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+  .tree-opts button{
+    background:var(--bg-alt); border:1px solid var(--border); color:var(--text); padding:9px 14px; border-radius:8px; cursor:pointer; font-size:13px;
+  }
+  .tree-opts button:hover{border-color:var(--accent); color:var(--accent);}
+  .tree-result{background:var(--accent-soft); border:1px solid #6C63FF44; border-radius:10px; padding:14px; font-size:13.5px; display:none;}
+  .tree-result.show{display:block;}
+
+  /* ---------- Comparison table ---------- */
+  table.compare{width:100%; border-collapse:collapse; font-size:13px; margin-top:6px;}
+  table.compare th, table.compare td{padding:10px 12px; border-bottom:1px solid var(--border); text-align:left;}
+  table.compare th{color:var(--muted); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:.4px;}
+  table.compare tr:hover td{background:var(--surface);}
+  .pill-s{font-size:11px; padding:2px 8px; border-radius:20px; font-weight:700;}
+  .pill-s.best{background:var(--green-soft); color:var(--green);}
+  .pill-s.ok{background:var(--amber-soft); color:var(--amber);}
+
+  /* ---------- Summary blocks ---------- */
+  .summary-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px;}
+  @media (max-width:700px){.summary-grid{grid-template-columns:1fr;}}
+  .kw{display:inline-block; background:var(--surface); border:1px solid var(--border); padding:5px 11px; border-radius:20px; font-size:12px; margin:3px 4px 0 0; color:var(--muted);}
+  .link-item{display:block; padding:10px 0; border-bottom:1px solid var(--border); font-size:13.5px;}
+  .link-item .l-title{font-weight:600;}
+  .link-item .l-desc{color:var(--muted); font-size:12.5px;}
+
+  footer{max-width:1320px; margin:0 auto; padding:20px 28px 60px; color:var(--muted-2); font-size:12px; text-align:center;}
+
+  @media print{
+    .topbar, .rail, .stage-actions, .btn, .tree-opts, .prompt-box .copy{display:none !important;}
+    body{background:#fff; color:#000;}
+    section.stage{background:#fff; border:1px solid #ccc; break-inside:avoid;}
+    .layout{grid-template-columns:1fr; display:block;}
+    a{color:#000;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="mark">AI</div>
+    <div>Workflow Architect
+      <small>Web Design → Portfolio → Job-Hunting</small>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <div class="progress-pill">
+      <span id="progressLabel">0 / 7 stages</span>
+      <div class="bar"><div class="fill" id="progressFill"></div></div>
+    </div>
+    <button class="btn" onclick="window.print()">🖨️ Print</button>
+    <button class="btn primary" onclick="resetProgress()">↺ Reset</button>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="eyebrow">End-to-end workflow</div>
+  <h1 class="title">Build a portfolio website that <span>gets you hired</span>, not just admired.</h1>
+  <p class="subtitle">A complete seven-stage pipeline — from positioning to interview leverage — with the AI tools, prompts, pitfalls, and time budgets for each step. Built for someone job-hunting, not freelancing.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="n">7</div><div class="l">Stages</div></div>
+    <div class="stat"><div class="n">~38–52h</div><div class="l">Total effort</div></div>
+    <div class="stat"><div class="n">18+</div><div class="l">AI tools mapped</div></div>
+    <div class="stat"><div class="n">3–4 wks</div><div class="l">Realistic timeline</div></div>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="rail" id="rail">
+    <h4>Workflow Stages</h4>
+    <!-- populated by JS -->
+    <h4>Reference</h4>
+    <div class="rail-item" onclick="scrollToId('decision')"><span class="dot"></span><span>Decision Tree</span></div>
+    <div class="rail-item" onclick="scrollToId('compare')"><span class="dot"></span><span>Tool Comparison</span></div>
+    <div class="rail-item" onclick="scrollToId('summary')"><span class="dot"></span><span>Summary & Stack</span></div>
+  </nav>
+
+  <main id="main"></main>
+</div>
+
+<footer>AI Workflow Architect — generated single-file workflow guide. Progress, stars, and notes are saved locally in your browser only.</footer>
+
+<script>
+/* ================= DATA ================= */
+const STAGES = [
+{
+  id:'strategy', num:1, title:'Strategy & Positioning', tagline:'Define who this site is for before you design a single pixel.',
+  time:{plan:'2–3h', total:'3–4h'},
+  objectives:[
+    'Identify 1–2 target roles/titles (e.g. "Frontend Developer", "Product Designer") — a portfolio trying to appeal to everyone convinces no one.',
+    'Define the hiring persona: what does the recruiter/hiring manager scan for in 30 seconds?',
+    'Audit 8–10 portfolios from people who recently got hired at your target companies.',
+    'Draft a one-line positioning statement (role + specialty + proof point).'
+  ],
+  tasks:[
+    'List target companies/roles from actual job postings, not aspirations.',
+    'Reverse-engineer JD keywords (tech stack, soft skills, tools) to echo in your copy.',
+    'Choose 3–4 projects that best prove those specific skills — not just your favorites.',
+    'Write a positioning statement and test it on 2–3 people outside the field.'
+  ],
+  tools:[
+    {name:'Claude (Projects)', tag:'Primary', why:'Best for long-form strategic reasoning — synthesizing job descriptions, your resume, and portfolio audits into a coherent positioning statement without losing nuance.', alt:'ChatGPT (GPT-4/5) — comparable reasoning, weaker at holding large context across a project.'},
+    {name:'Perplexity', tag:'Research', why:'Fast, citation-backed research on hiring trends, in-demand stacks, and what specific companies value — reduces guesswork in role targeting.', alt:'Google + LinkedIn manual search if you prefer verifying sources yourself.'},
+    {name:'Teal / Jobscan', tag:'Analysis', why:'Extracts keyword frequency from job postings so your positioning statement and case studies mirror actual hiring language (helps with ATS too).', alt:'Manual JD keyword tally in a spreadsheet.'}
+  ],
+  prompts:[
+    'I am a [role] targeting [type of company/role]. Here are 5 job descriptions: [paste]. Extract the 10 most repeated hard skills and 5 most repeated soft skills, then draft 3 one-line positioning statements for my portfolio hero section.',
+    'Here is my resume: [paste]. Here are 3 portfolios from people hired at [target companies]: [links/notes]. What pattern do they share in how they present projects that mine does not?'
+  ],
+  practices:[
+    'Positioning should be specific enough that a recruiter knows in one sentence what role to consider you for.',
+    'Base decisions on real job postings, not on what feels impressive to you.'
+  ],
+  mistakes:[
+    'Trying to appeal to every possible role ("full-stack, design, and marketing") — this reads as unfocused, not versatile.',
+    'Skipping competitive research and designing purely from inspiration boards.'
+  ],
+  outputs:['Positioning statement (1 sentence)', 'Shortlist of 3–4 case-study projects', 'Keyword bank from target JDs'],
+  tips:['Timebox research to 3 hours max — this stage has diminishing returns past that.']
+},
+{
+  id:'content', num:2, title:'Case Study Content Development', tagline:'The writing is 60% of what actually gets you the interview.',
+  time:{plan:'6–8h', total:'8–10h'},
+  objectives:[
+    'Write 3–4 case studies using a problem → process → decision → outcome structure.',
+    'Quantify impact wherever possible (metrics, before/after, scope).',
+    'Make your decision-making visible — hiring managers hire judgment, not just output.'
+  ],
+  tasks:[
+    'Draft a case study outline per project: context, constraints, key decisions, trade-offs, result.',
+    'Write first drafts fast and rough; refine for clarity and brevity after.',
+    'Add 2–3 "why I chose X over Y" moments per case study — this is what differentiates seniors from juniors.',
+    'Write a short, non-generic About/Bio section anchored to your positioning statement.'
+  ],
+  tools:[
+    {name:'Claude', tag:'Primary', why:'Strong at structuring narrative case studies and preserving your actual voice instead of flattening it into generic marketing copy — critical since recruiters can smell AI-generic writing.', alt:'ChatGPT — fine for first drafts, tends to default to more clichéd phrasing unless heavily prompted otherwise.'},
+    {name:'Hemingway Editor', tag:'Editing', why:'Free, fast readability pass — flags dense or passive sentences that slow a skimming recruiter down.', alt:'Grammarly — better for grammar, weaker for punchy clarity edits.'},
+    {name:'Notion AI', tag:'Drafting', why:'Useful if you are already organizing project notes in Notion; keeps drafting and source material in one place.', alt:'Google Docs + any LLM in a side panel.'}
+  ],
+  prompts:[
+    'Here are my raw notes on a project: [paste]. Structure this into a case study using: Context, Constraints, Key decisions (with trade-offs), Outcome. Keep my voice — do not add generic buzzwords like "seamless" or "cutting-edge."',
+    'Rewrite this paragraph to lead with the decision I made and why, not just what I built: [paste]. Keep it under 80 words.',
+    'Review this case study as a hiring manager skimming 40 portfolios in an hour. What is unclear or unconvincing in 15 seconds?'
+  ],
+  practices:[
+    'Lead each case study with the decision or problem, not a project description — this is the single biggest readability upgrade.',
+    'Keep each case study skimmable in under 90 seconds; link out to full detail for those who want depth.'
+  ],
+  mistakes:[
+    'Letting AI-generated copy replace your voice entirely — generic "results-driven professional" language actively hurts credibility.',
+    'Describing what a project does instead of what you decided and why.',
+    'Omitting failure or trade-offs — an all-success narrative reads as less credible, not more.'
+  ],
+  outputs:['3–4 finished case study drafts', 'About/Bio section', 'Reusable case-study template'],
+  tips:['Write worst-project-first — it is usually your weakest writing and benefits most from early iteration time.']
+},
+{
+  id:'design', num:3, title:'Visual Design & Prototyping', tagline:'Design decisions should support the writing, not compete with it.',
+  time:{plan:'6–8h', total:'8–10h'},
+  objectives:[
+    'Establish a simple, consistent visual system (type scale, spacing, 1 accent color).',
+    'Prototype the hero, case study template, and navigation before building anything.',
+    'Design for skimmability — most visitors spend under 60 seconds on the homepage.'
+  ],
+  tasks:[
+    'Pick 2 typefaces max and a restrained color palette.',
+    'Wireframe the homepage, case study template, and about page.',
+    'Prototype interactive states (hover, mobile nav) before development.',
+    'Get 2–3 rounds of feedback from people in your target field.'
+  ],
+  tools:[
+    {name:'Figma + Figma AI', tag:'Primary', why:'Industry-standard, and having a live Figma file is itself evidence of professional workflow — recruiters in design-adjacent roles may check.', alt:'Framer — faster from design to live site if you plan to skip a separate dev stage.'},
+    {name:'Claude / ChatGPT (visual reasoning)', tag:'Critique', why:'Useful for structured design critique (contrast, hierarchy, information density) when you lack a second pair of eyes.', alt:'Real humans in a design community (better signal, slower turnaround).'},
+    {name:'Coolors / Realtime Colors', tag:'Palette', why:'Fast, constrained palette generation — prevents the common mistake of using too many colors.', alt:'Manually pick from an existing brand or OS design system for a more disciplined result.'}
+  ],
+  prompts:[
+    'I am designing a portfolio homepage for a [role] job search. Here is a screenshot: [paste]. Critique it purely on visual hierarchy and skimmability for a recruiter spending 30 seconds — ignore aesthetics.',
+    'Suggest 3 restrained color palettes (4–5 hex values each) appropriate for a [role] portfolio that should read as credible and calm, not flashy.'
+  ],
+  practices:[
+    'Design the case study template before the homepage — it is used more and is harder to get right.',
+    'Constrain yourself to one accent color; let typography and spacing do most of the work.'
+  ],
+  mistakes:[
+    'Copying a trendy template that does not fit your content structure, then fighting it during development.',
+    'Prioritizing visual flair over legibility and load speed — most hiring managers browse portfolios on a laptop between meetings.'
+  ],
+  outputs:['Figma file with homepage, case study template, about page', 'Type scale + palette tokens', 'Mobile wireframes'],
+  tips:['Time-box visual exploration; a functionally excellent, moderately-designed site beats a stunning but half-finished one.']
+},
+{
+  id:'dev', num:4, title:'Development & Build', tagline:'Ship a fast, accessible, maintainable site — not a framework showcase.',
+  time:{plan:'8–12h', total:'10–14h'},
+  objectives:[
+    'Choose a stack matched to your target role (e.g. React/Next.js if applying to frontend roles).',
+    'Build responsive, accessible markup with clean semantic structure.',
+    'Set up version control and deploy a live URL early — iterate on a live site, not just locally.'
+  ],
+  tasks:[
+    'Scaffold the project and set up deployment pipeline on day one.',
+    'Build the layout system and case study template as reusable components.',
+    'Implement responsive breakpoints and test on real devices.',
+    'Add basic analytics and a working contact path (form or mailto).'
+  ],
+  tools:[
+    {name:'Claude Code / Cursor', tag:'Primary', why:'Best for iterative, multi-file frontend development with context of your whole codebase — significantly faster than copy-pasting into a chat window.', alt:'GitHub Copilot — better as an in-editor autocomplete layer if you prefer writing most logic yourself.'},
+    {name:'v0 by Vercel', tag:'Scaffolding', why:'Fast for generating clean, accessible component scaffolding from a description, especially for React/Tailwind stacks — good starting point to then hand-refine.', alt:'Claude Artifacts — useful for quick static prototyping without a full dev environment.'},
+    {name:'GitHub', tag:'Version control', why:'A visible, well-organized commit history and README is itself a credibility signal for developer roles.', alt:'GitLab — fine alternative, less commonly checked by recruiters.'}
+  ],
+  prompts:[
+    'Build a responsive case study template component in [React/Next.js + Tailwind]. It needs: hero title, role/timeframe metadata, a "key decisions" section with expandable detail, and a results/impact block. Semantic HTML, accessible headings, no layout shift.',
+    'Review this component for accessibility issues: [paste code]. Check heading hierarchy, color contrast, keyboard navigation, and alt text.',
+    'This page loads slowly on mobile. Here is the code: [paste]. Suggest specific optimizations for image loading and bundle size.'
+  ],
+  practices:[
+    'Deploy early (even a placeholder) so you are iterating on a real live URL from week one.',
+    'Write semantic HTML first, then style — this alone fixes most accessibility problems by default.'
+  ],
+  mistakes:[
+    'Over-engineering the stack (unnecessary state management, CMS, animation libraries) for a 5-page static site — this signals poor judgment more than skill.',
+    'Skipping mobile testing until the end.',
+    'Not committing code incrementally, losing the value of a visible development history.'
+  ],
+  outputs:['Live deployed site (staging URL)', 'Public GitHub repo with clean commit history', 'Working responsive build across breakpoints'],
+  tips:['Build the case study template as one reusable component — do not hand-code each project page separately.']
+},
+{
+  id:'optimize', num:5, title:'Optimization: Performance, SEO, Accessibility', tagline:'Invisible work that recruiters feel even if they never mention it.',
+  time:{plan:'3–4h', total:'4–6h'},
+  objectives:[
+    'Score well on Core Web Vitals — slow sites lose attention before content is even read.',
+    'Ensure the site is discoverable if someone searches your name.',
+    'Meet baseline accessibility (WCAG AA) — an accessibility miss is a red flag for design/dev hiring managers specifically.'
+  ],
+  tasks:[
+    'Run Lighthouse audits and fix flagged performance/accessibility issues.',
+    'Compress and lazy-load images; convert to modern formats (WebP/AVIF).',
+    'Add meta tags, Open Graph tags, and a sitemap for discoverability.',
+    'Manually test keyboard navigation and screen-reader flow.'
+  ],
+  tools:[
+    {name:'Lighthouse / PageSpeed Insights', tag:'Primary', why:'Free, authoritative, gives a prioritized fix list rather than vague advice — the standard tool hiring managers themselves may check with.', alt:'WebPageTest — more granular waterfall data if you need deeper diagnosis.'},
+    {name:'Claude / ChatGPT', tag:'Fix generation', why:'Good at translating audit output into specific code fixes rather than generic explanations.', alt:'Stack Overflow / official docs for edge cases.'},
+    {name:'axe DevTools', tag:'Accessibility', why:'Catches accessibility issues Lighthouse misses (focus order, ARIA misuse) with actionable, specific fixes.', alt:'Manual screen reader testing (VoiceOver/NVDA) — slower but most accurate.'}
+  ],
+  prompts:[
+    'Here is my Lighthouse report: [paste]. Prioritize the top 5 fixes by impact-to-effort ratio and give me the specific code change for each.',
+    'Write appropriate meta title, meta description, and Open Graph tags for a [role] portfolio homepage, optimized for someone searching my name after seeing my resume.',
+    'Audit this page structure for accessibility issues a screen reader user would hit: [paste HTML].'
+  ],
+  practices:[
+    'Target a Lighthouse score of 90+ across all four categories before considering the build "done."',
+    'Test with a screen reader at least once, even briefly — most issues are obvious within minutes.'
+  ],
+  mistakes:[
+    'Treating accessibility as optional polish rather than baseline quality — for design/dev roles specifically, this is often silently disqualifying.',
+    'Shipping unoptimized hero images that tank load time on mobile.'
+  ],
+  outputs:['Lighthouse scores 90+ (Performance, Accessibility, Best Practices, SEO)', 'Meta/OG tags configured', 'Accessibility audit fixed'],
+  tips:['Do this pass after content is finalized — optimizing before content is stable wastes effort re-doing image/meta work.']
+},
+{
+  id:'launch', num:6, title:'Launch & Distribution', tagline:'A great portfolio nobody sees does not get you hired.',
+  time:{plan:'2–3h', total:'3–5h'},
+  objectives:[
+    'Get the URL in front of the specific people/systems that make hiring decisions.',
+    'Update every profile that links to your work to point to the new site.',
+    'Prepare the portfolio to survive first impressions from cold traffic (recruiters, LinkedIn scrolls).'
+  ],
+  tasks:[
+    'Update LinkedIn, resume, GitHub bio, and email signature with the new URL.',
+    'Share launch posts with context, not just a link — explain the positioning.',
+    'Send directly to 5–10 relevant contacts for candid feedback before wide distribution.',
+    'Set up basic analytics to see where traffic and drop-off actually happen.'
+  ],
+  tools:[
+    {name:'Claude / ChatGPT', tag:'Primary', why:'Good for drafting distribution copy (LinkedIn post, cold outreach, README) tailored to different audiences without sounding like a template.', alt:'Manual drafting if you already have a strong personal voice for social posts.'},
+    {name:'Plausible / GA4', tag:'Analytics', why:'Lightweight, privacy-respecting traffic and behavior tracking to see which case study gets read and where visitors drop off.', alt:'Vercel Analytics — convenient if already deployed on Vercel.'},
+    {name:'Bitly / short URL', tag:'Tracking', why:'Lets you tag links differently per channel (LinkedIn vs. cold email vs. resume) to see what is actually converting.', alt:'UTM parameters directly in GA4, no separate tool needed.'}
+  ],
+  prompts:[
+    'Draft a LinkedIn launch post announcing my new portfolio for a [role] job search. Tone: confident, specific, not salesy. Include a hook that is not "Excited to share..."',
+    'Write a short cold outreach message to a hiring manager at [company] referencing my portfolio and one specific case study relevant to their team.'
+  ],
+  practices:[
+    'Get feedback from 5–10 people before mass distribution — cheap to fix issues before they cost you an interview.',
+    'Track which channel/link actually drives interview requests, not just clicks.'
+  ],
+  mistakes:[
+    'Launching quietly and assuming recruiters will stumble onto it — distribution requires the same intentionality as the build.',
+    'Sending a generic "check out my portfolio" message instead of referencing something specific to the recipient.'
+  ],
+  outputs:['Live public URL distributed across profiles', 'Analytics configured', 'Launch post + outreach templates'],
+  tips:['Treat the first two weeks post-launch as a feedback loop, not a finish line — expect to revise based on real reactions.']
+},
+{
+  id:'iterate', num:7, title:'Iteration & Interview Leverage', tagline:'The portfolio is a living asset that should improve with every application cycle.',
+  time:{plan:'Ongoing', total:'2–3h/mo'},
+  objectives:[
+    'Use analytics and interview feedback to identify weak points in the narrative.',
+    'Turn the portfolio into interview leverage — reference specific sections during conversations.',
+    'Keep content current as new projects/skills are added.'
+  ],
+  tasks:[
+    'Review analytics monthly: which case study gets the most time, where do people drop off.',
+    'After each interview, note which questions the portfolio failed to pre-answer, and update it.',
+    'Add new projects that fill gaps revealed by rejections or interview feedback.',
+    'A/B test hero copy or ordering if traffic volume allows.'
+  ],
+  tools:[
+    {name:'Claude', tag:'Primary', why:'Good for post-interview debriefs — feed in what was asked and get a structured read on what your portfolio should clarify or add.', alt:'ChatGPT — comparable for this use case.'},
+    {name:'GA4 / Plausible', tag:'Signal', why:'Reveals actual behavior (drop-off points, most-read case study) rather than assumptions about what is working.', alt:'Hotjar — adds scroll/heatmap data if you want more granular behavioral insight.'},
+    {name:'Notion / Linear', tag:'Tracking', why:'Simple backlog to track portfolio revisions across an application cycle instead of losing feedback in memory.', alt:'A plain spreadsheet works equally well at this scale.'}
+  ],
+  prompts:[
+    'In this interview, I was asked: [questions]. My portfolio did not clearly address [gap]. Suggest how to revise the relevant case study to pre-answer this next time.',
+    'Here is 30 days of portfolio analytics: [paste/describe]. What does the drop-off pattern suggest about my content structure?'
+  ],
+  practices:[
+    'Treat every rejection or interview as a data point for a specific revision, not just discouragement.',
+    'Revisit and refresh case studies at least once per application cycle.'
+  ],
+  mistakes:[
+    'Treating "launch" as the finish line and never revisiting the site during an active job search.',
+    'Making changes based on personal taste drift rather than actual behavioral or interview signal.'
+  ],
+  outputs:['Monthly revision log', 'Updated case studies reflecting real interview gaps', 'A refined, continuously-improving asset'],
+  tips:['Keep a running doc of every question an interviewer asked that the portfolio did not already answer — it is the highest-signal backlog you will get.']
+}
+];
+
+const DECISION_TREE = {
+  q:'Do you already have 2+ finished projects worth showcasing?',
+  yes:{
+    text:'Good — skip most of Stage 1 discovery and go straight into Stage 2 (Case Study Content Development). Spend saved time going deeper on the writing.',
+  },
+  no:{
+    q2:'Do you have a specific target role/company in mind?',
+    yes:{ text:'Start at Stage 1, but narrow it fast: reverse-engineer 3–5 JDs first, then build 1 targeted project specifically to fill your biggest visible gap before writing case studies.' },
+    no:{ text:'Start at Stage 1 fully. Do not skip positioning — building projects before knowing your target role is the single most time-wasting order of operations in this workflow.' }
+  }
+};
+
+const COMPARE = [
+  {tool:'Claude', use:'Strategy, writing, code, critique', strength:'Best', note:'Strongest at long-context reasoning and preserving your voice in writing.'},
+  {tool:'ChatGPT', use:'Strategy, writing, code', strength:'Good', note:'Comparable quality; slightly more generic default phrasing in writing tasks.'},
+  {tool:'Cursor / Claude Code', use:'Development', strength:'Best', note:'Full-codebase context makes multi-file frontend work far faster than chat-based coding.'},
+  {tool:'Figma AI', use:'Design & prototyping', strength:'Good', note:'Best when you already work in Figma; less useful as a standalone tool.'},
+  {tool:'v0 by Vercel', use:'Component scaffolding', strength:'Good', note:'Fast starting point for React/Tailwind builds; needs manual refinement after.'},
+  {tool:'Lighthouse', use:'Performance/SEO/A11y audit', strength:'Best', note:'Free, authoritative, and the same tool hiring managers may reference.'},
+  {tool:'Perplexity', use:'Market/hiring research', strength:'Good', note:'Faster and more current than manual search for trend research.'}
+];
+
+/* ================= RENDER ================= */
+const main = document.getElementById('main');
+const rail = document.getElementById('rail');
+const STORE_KEY = 'awa_portfolio_progress_v1';
+let state = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+state.done = state.done || {};
+state.starred = state.starred || {};
+state.notes = state.notes || {};
+
+function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); updateProgress(); }
+
+function updateProgress(){
+  const total = STAGES.length;
+  const done = Object.values(state.done).filter(Boolean).length;
+  document.getElementById('progressLabel').textContent = done + ' / ' + total + ' stages';
+  document.getElementById('progressFill').style.width = (done/total*100) + '%';
+  STAGES.forEach(s=>{
+    const item = document.getElementById('rail-'+s.id);
+    if(item) item.classList.toggle('done', !!state.done[s.id]);
+  });
+}
+
+function buildRail(){
+  let html = '<h4>Workflow Stages</h4>';
+  STAGES.forEach(s=>{
+    html += `<div class="rail-item" id="rail-${s.id}" onclick="scrollToId('${s.id}')">
+      <span class="dot"></span><span class="num">${String(s.num).padStart(2,'0')}</span><span>${s.title}</span>
+    </div>`;
+  });
+  rail.innerHTML = html + rail.innerHTML;
+}
+
+function scrollToId(id){
+  document.getElementById(id).scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function esc(str){ return str.replace(/</g,'&lt;'); }
+
+function renderStage(s){
+  const isDone = !!state.done[s.id];
+  const isStar = !!state.starred[s.id];
+  const note = state.notes[s.id] || '';
+
+  const objs = s.objectives.map(o=>`<li>${o}</li>`).join('');
+  const tasks = s.tasks.map(t=>`<li>${t}</li>`).join('');
+  const tools = s.tools.map(t=>`
+    <div class="tool-card">
+      <div class="row"><span class="name">${t.name}</span><span class="tag">${t.tag}</span></div>
+      <div class="why">${t.why}</div>
+      <div class="alt">Alternative: ${t.alt}</div>
+    </div>`).join('');
+  const prompts = s.prompts.map((p,i)=>`
+    <div class="prompt-box" id="${s.id}-p${i}">
+      <button class="copy" onclick="copyPrompt('${s.id}-p${i}', this)">Copy</button>${esc(p)}
+    </div>`).join('');
+  const practices = s.practices.map(p=>`<div class="callout practice"><b>Do:</b> ${p}</div>`).join('');
+  const mistakes = s.mistakes.map(m=>`<div class="callout mistake"><b>Avoid:</b> ${m}</div>`).join('');
+  const outputs = s.outputs.map(o=>`<li>${o}</li>`).join('');
+  const tips = s.tips.map(t=>`<li>${t}</li>`).join('');
+
+  return `
+  <section class="stage" id="${s.id}">
+    <div class="stage-head">
+      <div class="stage-title">
+        <div class="badge">${String(s.num).padStart(2,'0')}</div>
+        <div><h2>${s.title}</h2><p class="tagline">${s.tagline}</p></div>
+      </div>
+      <div class="stage-actions">
+        <button class="star ${isStar?'on':''}" onclick="toggleStar('${s.id}', this)">★</button>
+        <div class="checkbtn ${isDone?'checked':''}" onclick="toggleDone('${s.id}', this)">
+          <span>${isDone?'✓ Completed':'Mark complete'}</span>
+        </div>
+      </div>
+    </div>
+    <div class="time-est"><span>Planning: <b>${s.time.plan}</b></span><span>Total effort: <b>${s.time.total}</b></span></div>
+
+    <div class="grid2">
+      <div>
+        <h3 class="sub">Objectives</h3>
+        <ul class="clean">${objs}</ul>
+      </div>
+      <div>
+        <h3 class="sub">Tasks</h3>
+        <ul class="clean">${tasks}</ul>
+      </div>
+    </div>
+
+    <h3 class="sub">Best AI Tools for This Stage</h3>
+    ${tools}
+
+    <h3 class="sub">Prompt Examples</h3>
+    ${prompts}
+
+    <div class="grid2">
+      <div>
+        <h3 class="sub">Best Practices</h3>
+        ${practices}
+      </div>
+      <div>
+        <h3 class="sub">Common Mistakes</h3>
+        ${mistakes}
+      </div>
+    </div>
+
+    <h3 class="sub">Expected Outputs</h3>
+    <div class="callout output"><ul class="clean" style="margin:0;">${outputs}</ul></div>
+
+    <h3 class="sub">Efficiency Tips</h3>
+    <ul class="clean muted-list">${tips}</ul>
+
+    <label class="notes-label">Your notes for this stage (saved locally)</label>
+    <textarea class="notes-area" placeholder="Jot down decisions, links, or reminders..." oninput="saveNote('${s.id}', this.value)">${note}</textarea>
+  </section>`;
+}
+
+function renderReference(){
+  return `
+  <section class="stage" id="decision">
+    <div class="stage-head"><div class="stage-title"><div>
+      <h2>Decision Tree: Where Should You Start?</h2>
+      <p class="tagline">Skip redundant stages if you already have material.</p>
+    </div></div></div>
+    <div class="tree-box" id="treeBox"></div>
+  </section>
+
+  <section class="stage" id="compare">
+    <div class="stage-head"><div class="stage-title"><div>
+      <h2>Tool Comparison</h2>
+      <p class="tagline">A quick-reference view across the whole workflow.</p>
+    </div></div></div>
+    <table class="compare">
+      <thead><tr><th>Tool</th><th>Primary Use</th><th>Rating</th><th>Note</th></tr></thead>
+      <tbody>
+        ${COMPARE.map(c=>`<tr><td><b>${c.tool}</b></td><td>${c.use}</td><td><span class="pill-s ${c.strength==='Best'?'best':'ok'}">${c.strength}</span></td><td style="color:var(--muted)">${c.note}</td></tr>`).join('')}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="stage" id="summary">
+    <div class="stage-head"><div class="stage-title"><div>
+      <h2>Workflow Summary</h2>
+      <p class="tagline">The whole pipeline at a glance, plus resources to go deeper.</p>
+    </div></div></div>
+
+    <div class="summary-grid">
+      <div>
+        <h3 class="sub">Recommended AI Stack</h3>
+        <ul class="clean">
+          <li><b>Claude</b> — strategy, writing, code, critique (primary across most stages)</li>
+          <li><b>Claude Code / Cursor</b> — development</li>
+          <li><b>Figma + Figma AI</b> — design & prototyping</li>
+          <li><b>Lighthouse / axe DevTools</b> — performance & accessibility audits</li>
+          <li><b>GA4 / Plausible</b> — post-launch analytics</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="sub">Future Automation Opportunities</h3>
+        <ul class="clean">
+          <li>Auto-generate a monthly analytics digest via a scheduled script + LLM summary.</li>
+          <li>Template-ize the case study writing prompt so new projects can be drafted in minutes.</li>
+          <li>Set up a lightweight CI check that runs Lighthouse on every deploy.</li>
+          <li>Build a simple content-freshness reminder (quarterly) so the site doesn't go stale mid-search.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 class="sub">Learning Resources</h3>
+    <a class="link-item" href="#" onclick="return false;"><span class="l-title">web.dev (Google)</span><span class="l-desc">Performance, accessibility, and Core Web Vitals guidance — the same standard Lighthouse measures against.</span></a>
+    <a class="link-item" href="#" onclick="return false;"><span class="l-title">A11y Project</span><span class="l-desc">Practical, non-academic accessibility checklists for real projects.</span></a>
+    <a class="link-item" href="#" onclick="return false;"><span class="l-title">Refactoring UI</span><span class="l-desc">Concrete visual design heuristics for developers without a design background.</span></a>
+
+    <h3 class="sub">Communities</h3>
+    <a class="link-item" href="#" onclick="return false;"><span class="l-title">r/UXDesign, r/webdev, r/cscareerquestions</span><span class="l-desc">Feedback and portfolio critique threads.</span></a>
+    <a class="link-item" href="#" onclick="return false;"><span class="l-title">ADPList</span><span class="l-desc">Free portfolio/career mentorship sessions with practitioners in your target field.</span></a>
+
+    <h3 class="sub">Search Keywords</h3>
+    <div>
+      <span class="kw">portfolio case study structure</span><span class="kw">recruiter portfolio red flags</span>
+      <span class="kw">Lighthouse accessibility audit</span><span class="kw">JD keyword extraction</span>
+      <span class="kw">frontend portfolio 2026</span><span class="kw">Core Web Vitals checklist</span>
+    </div>
+
+    <h3 class="sub">Additional AI Prompts</h3>
+    <div class="prompt-box" id="extra-p0"><button class="copy" onclick="copyPrompt('extra-p0', this)">Copy</button>Act as a hiring manager for [role] at [type of company]. Review my full portfolio site structure (sitemap + content outline below) and flag anything a busy recruiter would misread or skip.</div>
+    <div class="prompt-box" id="extra-p1"><button class="copy" onclick="copyPrompt('extra-p1', this)">Copy</button>I have 3 rejections with feedback: [paste]. Identify the common thread and suggest one specific portfolio change that addresses it directly.</div>
+  </section>`;
+}
+
+/* ---- interactivity ---- */
+function toggleDone(id, el){
+  state.done[id] = !state.done[id];
+  el.classList.toggle('checked', state.done[id]);
+  el.querySelector('span').textContent = state.done[id] ? '✓ Completed' : 'Mark complete';
+  save();
+}
+function toggleStar(id, el){
+  state.starred[id] = !state.starred[id];
+  el.classList.toggle('on', state.starred[id]);
+  save();
+}
+function saveNote(id, val){
+  state.notes[id] = val;
+  save();
+}
+function resetProgress(){
+  if(!confirm('Reset all progress, stars, and notes?')) return;
+  state = {done:{}, starred:{}, notes:{}};
+  save();
+  document.querySelectorAll('.checkbtn').forEach(el=>{el.classList.remove('checked'); el.querySelector('span').textContent='Mark complete';});
+  document.querySelectorAll('.star').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.notes-area').forEach(el=>el.value='');
+}
+function copyPrompt(id, btn){
+  const box = document.getElementById(id);
+  const text = box.textContent.replace('Copy','').trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    const old = btn.textContent; btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent=old, 1200);
+  });
+}
+
+/* scroll spy */
+function setupSpy(){
+  const items = document.querySelectorAll('.rail-item');
+  const targets = STAGES.map(s=>s.id).concat(['decision','compare','summary']);
+  window.addEventListener('scroll', ()=>{
+    let current = targets[0];
+    targets.forEach(t=>{
+      const el = document.getElementById(t);
+      if(el && el.getBoundingClientRect().top < 140) current = t;
+    });
+    items.forEach(it=>it.classList.toggle('active', it.id === 'rail-'+current));
+  });
+}
+
+/* decision tree render */
+function renderTree(){
+  const box = document.getElementById('treeBox');
+  box.innerHTML = `
+    <div class="tree-q">${DECISION_TREE.q}</div>
+    <div class="tree-opts">
+      <button onclick="treeAnswer('yes')">Yes</button>
+      <button onclick="treeAnswer('no')">No</button>
+    </div>
+    <div class="tree-result" id="treeResult"></div>`;
+}
+function treeAnswer(a){
+  const result = document.getElementById('treeResult');
+  if(a==='yes'){
+    result.textContent = DECISION_TREE.yes.text;
+    result.classList.add('show');
+  } else {
+    const opts = document.querySelector('.tree-opts');
+    opts.innerHTML = `<div class="tree-q" style="width:100%;">${DECISION_TREE.no.q2}</div>
+      <button onclick="treeAnswer2('yes')">Yes</button>
+      <button onclick="treeAnswer2('no')">No</button>`;
+  }
+}
+function treeAnswer2(a){
+  const result = document.getElementById('treeResult');
+  result.textContent = DECISION_TREE.no[a].text;
+  result.classList.add('show');
+}
+
+/* ================= INIT ================= */
+buildRail();
+main.innerHTML = STAGES.map(renderStage).join('') + renderReference();
+renderTree();
+setupSpy();
+updateProgress();
+</script>
+</body>
+</html>
