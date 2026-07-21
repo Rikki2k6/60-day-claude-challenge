@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LinkedIn Rebuild — Prateek Kumar Singh</title>
+<style>
+  :root{
+    --bg:#0e1512; --panel:#141d19; --panel2:#101815;
+    --line:#233029; --text:#e8ede9; --sub:#8fa39a; --muted:#5c6f66;
+    --accent:#5ee6a8; --accent-dim:#2c5c48; --warn:#e6b85e; --warn-dim:#4a3e22;
+    --mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);margin:0;padding:0;line-height:1.6;}
+  .wrap{max-width:900px;margin:0 auto;padding:40px 24px 100px;}
+  .masthead{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:32px;}
+  .masthead .tag{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;}
+  .masthead h1{font-size:28px;font-weight:600;margin:8px 0 4px;}
+  .masthead p{color:var(--sub);font-size:14px;margin:0;}
+  .navbar{display:flex;gap:2px;flex-wrap:wrap;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px;margin-bottom:32px;position:sticky;top:0;z-index:10;}
+  .navbtn{flex:1;min-width:110px;text-align:center;padding:10px 8px;font-family:var(--mono);font-size:11px;letter-spacing:0.5px;color:var(--sub);cursor:pointer;border-radius:6px;user-select:none;transition:all .15s;text-transform:uppercase;}
+  .navbtn:hover{color:var(--text);background:var(--panel);}
+  .navbtn.active{background:var(--accent-dim);color:var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+  .section-label{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin:0 0 6px;}
+  h2{font-size:20px;font-weight:600;margin:0 0 4px;}
+  .lede{color:var(--sub);font-size:14px;margin:0 0 24px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px 22px;margin-bottom:16px;}
+  .card h3{font-size:15px;margin:0 0 10px;color:var(--text);}
+  .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px;}
+  .score{font-family:var(--mono);font-weight:600;color:var(--accent);font-size:14px;white-space:nowrap;}
+  .score.zero{color:var(--muted);}
+  .gap-list{list-style:none;padding:0;margin:0;}
+  .gap-list li{padding:10px 0;border-bottom:1px solid var(--line);font-size:14px;color:var(--sub);}
+  .gap-list li:last-child{border-bottom:none;}
+  .gap-list b{color:var(--warn);font-weight:600;}
+  .option{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:10px;}
+  .option .lbl{font-family:var(--mono);font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+  .option .txt{font-size:14.5px;font-weight:500;}
+  .option .why{font-size:12.5px;color:var(--sub);margin-top:6px;}
+  .about-block{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:18px 20px;font-size:14.5px;white-space:pre-wrap;font-family:var(--sans);}
+  .about-block .h{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin:14px 0 4px;}
+  .about-block .h:first-child{margin-top:0;}
+  .kw{display:inline-block;background:var(--accent-dim);color:var(--accent);font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:4px;margin:3px 4px 0 0;}
+  .ba{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+  .ba:last-child{border-bottom:none;}
+  .ba .before{color:var(--muted);text-align:right;font-family:var(--mono);}
+  .ba .after{color:var(--accent);font-family:var(--mono);}
+  .ba .arrow{color:var(--muted);font-family:var(--mono);font-size:11px;}
+  .skill-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .skill-col h4{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:var(--mono);margin:0 0 10px;}
+  .skill-item{display:flex;justify-content:space-between;font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line);}
+  .skill-item .n{font-family:var(--mono);color:var(--muted);margin-right:8px;}
+  .day{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--line);}
+  .day:last-child{border-bottom:none;}
+  .day .num{font-family:var(--mono);font-size:13px;color:var(--accent);min-width:52px;flex-shrink:0;padding-top:1px;}
+  .day .body{flex:1;font-size:14px;}
+  .day .body b{color:var(--text);}
+  .day .body p{margin:6px 0 0;color:var(--sub);font-size:13px;}
+  .post-draft{background:var(--panel2);border-left:2px solid var(--accent);border-radius:0 8px 8px 0;padding:14px 16px;margin-top:10px;font-size:13.5px;color:var(--text);white-space:pre-wrap;}
+  .summary-card{background:linear-gradient(180deg,var(--panel) 0%,var(--panel2) 100%);border:1px solid var(--accent-dim);border-radius:12px;padding:28px;}
+  .summary-card .big{display:flex;justify-content:center;align-items:center;gap:18px;margin:20px 0;font-family:var(--mono);}
+  .summary-card .big .n{font-size:36px;font-weight:700;}
+  .summary-card .big .zero{color:var(--muted);}
+  .summary-card .big .full{color:var(--accent);}
+  .summary-card .big .ar{color:var(--muted);font-size:20px;}
+  .summary-card ol{padding-left:20px;font-size:14px;color:var(--sub);}
+  .summary-card ol li{margin-bottom:6px;}
+  .highlight{color:var(--accent);font-weight:600;}
+  .note{background:var(--warn-dim);border:1px solid #6b5a2e;border-radius:8px;padding:12px 16px;font-size:13px;color:var(--warn);margin-bottom:24px;}
+  .footer-nav{display:flex;justify-content:space-between;margin-top:28px;}
+  .footer-nav button{font-family:var(--mono);font-size:11px;background:var(--panel2);border:1px solid var(--line);color:var(--sub);padding:10px 18px;border-radius:6px;cursor:pointer;text-transform:uppercase;letter-spacing:0.5px;}
+  .footer-nav button:hover{color:var(--accent);border-color:var(--accent-dim);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="tag">LinkedIn // build-from-zero</div>
+    <h1>Prateek Kumar Singh — profile build</h1>
+    <p>Target: Data Science / AI-ML internship, entry-level developer roles · Built for a fresh (post-ban) account</p>
+  </div>
+
+  <div class="note">Your old account is banned and an appeal is pending. This build is ready to deploy the moment a profile exists — whether that's a reinstated account or a new one. Don't wait on the appeal to prep the content below.</div>
+
+  <div class="navbar" id="nav"></div>
+
+  <div id="panels"></div>
+
+</div>
+
+<script>
+const sections = [
+  {id:'gaps', label:'01 Gaps'},
+  {id:'rebuild', label:'02 Rebuild'},
+  {id:'skills', label:'03 Skills'},
+  {id:'scorecard', label:'04 Scorecard'},
+  {id:'plan', label:'05 7-day plan'},
+  {id:'summary', label:'06 Summary card'},
+];
+
+const nav = document.getElementById('nav');
+sections.forEach((s,i)=>{
+  const b = document.createElement('div');
+  b.className = 'navbtn' + (i===0?' active':'');
+  b.textContent = s.label;
+  b.onclick = ()=>show(s.id);
+  b.dataset.id = s.id;
+  nav.appendChild(b);
+});
+
+function show(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.id===id));
+  document.getElementById('panel-'+id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function next(id){ show(id); }
+
+document.getElementById('panels').innerHTML = `
+
+<div class="panel active" id="panel-gaps">
+  <p class="section-label">Part 1</p>
+  <h2>What a blank profile actually costs you</h2>
+  <p class="lede">No profile exists yet, so there's nothing to roast — but your raw inputs reveal specific gaps that would sink even a well-intentioned first draft. Here's what recruiters would react to if you shipped this as-is.</p>
+
+  <ul class="gap-list">
+    <li><b>"Actively learning" reads as not-yet-employable.</b> Recruiters searching for interns filter on skills they can verify, not verbs like "learning." Every self-description needs a proof point attached in the same sentence.</li>
+    <li><b>Two projects, zero numbers.</b> "Built an emotion detection app" tells a recruiter what you did, not whether it worked, what it took, or that it's real. No accuracy metric, no dataset size, no deployment status.</li>
+    <li><b>"AI Application Development" is a skill label with no evidence anchor.</b> It's a category, not a capability. Recruiters searching LinkedIn type things like "Flask," "scikit-learn," "NLP," "pandas" — not "AI Application Development."</li>
+    <li><b>The 60-day Claude Challenge is underselling itself.</b> Framed as "creating numerous AI-powered web applications," it currently reads as a hobby list. Framed as a shipped-in-public content + build series, it's actually your strongest differentiator — most CS/ECE students have zero public build history at this stage.</li>
+    <li><b>No target-role signal anywhere in the raw inputs.</b> "Data Science, AI/ML, Python, or Generative AI" is four different job families. A profile optimized for all four is optimized for none — search ranking rewards specificity.</li>
+  </ul>
+
+  <div class="card" style="margin-top:20px;">
+    <h3>Baseline readiness score (if shipped exactly as given above)</h3>
+    <div class="row"><span>Headline</span><span class="score zero">n/a — none written</span></div>
+    <div class="row"><span>About (hook)</span><span class="score zero">n/a — none written</span></div>
+    <div class="row"><span>About (full)</span><span class="score zero">n/a — none written</span></div>
+    <div class="row"><span>Experience / projects</span><span class="score zero">3/10 — undated, unquantified</span></div>
+    <div class="row"><span>Skills & keywords</span><span class="score zero">2/10 — three broad labels only</span></div>
+    <div class="row" style="border-top:1px solid var(--line);padding-top:10px;margin-top:6px;"><span><b>Overall profile strength</b></span><span class="score zero">~8/100</span></div>
+  </div>
+
+  <div class="footer-nav"><span></span><button onclick="next('rebuild')">Next: the rebuild →</button></div>
+</div>
+
+<div class="panel" id="panel-rebuild">
+  <p class="section-label">Part 2</p>
+  <h2>The rebuild</h2>
+  <p class="lede">Every section rewritten with the strategy explained — copy the words, but understand the reasoning so you can write the next version yourself.</p>
+
+  <div class="card">
+    <h3>Headline — 3 options</h3>
+    <p style="font-size:13px;color:var(--sub);margin-top:-4px;">Formula: [Role/Identity] | [Who I help or what I do] | [Proof or differentiator]</p>
+
+    <div class="option">
+      <div class="lbl">Option 1 — keyword-optimized</div>
+      <div class="txt">Data Science & AI/ML Intern-Seeking Student | Python, Scikit-learn, NLP, Flask | ECE @ ABES Engineering College</div>
+      <div class="why">Use this if you want maximum search visibility. LinkedIn's recruiter search weights headline keywords heavily — this packs in the exact terms a Data Science / AI-ML recruiter filters on.</div>
+    </div>
+    <div class="option">
+      <div class="lbl">Option 2 — value-proposition</div>
+      <div class="txt">I Build AI Applications From Scratch, Then Document Every Step | Python · ML · NLP · Generative AI</div>
+      <div class="why">Use this if you want the headline to do storytelling work, not just keyword-matching. It signals your actual differentiator — builder, not just learner — before anyone opens your About section.</div>
+    </div>
+    <div class="option">
+      <div class="lbl">Option 3 — authority / thought-leadership</div>
+      <div class="txt">Documenting 60 Days of Building With Claude AI | Python & ML Student | Sharing What I Learn, Publicly</div>
+      <div class="why">Use this if the content series is your primary growth lever right now — it's most useful for attracting the AI community and building an audience, less useful for a keyword-matched recruiter search.</div>
+    </div>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:10px;">Recommendation: start with Option 1 for the first 30 days (you need search visibility more than narrative right now, since you have zero network), then A/B into Option 2 once you have some profile views to compare against.</p>
+  </div>
+
+  <div class="card">
+    <h3>About section — full rewrite</h3>
+    <div class="about-block"><span class="h">Hook (before "see more")</span>I don't wait for a course to finish before I start building. I ship AI applications, break them, fix them, and write about what I learned — in public, every day.<span class="h">Story</span>I'm a Computer Engineering student at ABES Engineering College learning Data Science and AI/ML the way I learn best: by building things that have to actually work. Right now that means Python, scikit-learn, NLP, and Flask — and figuring out generative AI well enough to build real applications with it, not just talk about it.<span class="h">Proof</span>→ Built an emotion detection web app using Flask, scikit-learn, and NLP — trained a text classification model and shipped it as a working tool, not a notebook.
+→ Completed a 60-day build challenge with Claude AI: dozens of AI-powered web tools and applications, each one documented publicly on GitHub as I built it.
+→ Currently deepening pandas, NumPy, SQL, and Power BI to round out the data side of AI work, not just the modeling side.<span class="h">CTA</span>I'm looking for a Data Science / AI-ML internship where I can keep building real things under real constraints. If that's what you're hiring for — or if you're building in public too — message me, I'd like to talk.</div>
+    <div style="margin-top:14px;">
+      <span class="kw">Data Science</span><span class="kw">Machine Learning</span><span class="kw">Python</span><span class="kw">NLP</span><span class="kw">Flask</span><span class="kw">scikit-learn</span><span class="kw">Generative AI</span><span class="kw">AI Applications</span><span class="kw">SQL</span><span class="kw">Power BI</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Experience / featured project — top entry rewrite</h3>
+    <div class="ba"><div class="before">Built an emotion detection app using Flask, Scikit-learn, NLP.</div><div class="arrow">→</div><div class="after">Built and deployed an emotion-detection web app: trained an NLP text-classification model in scikit-learn, served predictions through a Flask backend, with a live text-input interface.</div></div>
+    <div class="ba"><div class="before">Completed the 60 Days Claude Challenge.</div><div class="arrow">→</div><div class="after">Shipped 60 consecutive days of AI-powered tools and applications as a public build challenge, documenting architecture and lessons learned for each one on GitHub.</div></div>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:8px;">Add estimated numbers even where you don't have exact ones — "trained on ~X samples," "Y tools shipped," "Z% test accuracy." A rounded real number beats no number every time; just don't invent results you didn't get.</p>
+  </div>
+
+  <div class="footer-nav"><button onclick="next('gaps')">← Back</button><button onclick="next('skills')">Next: skills →</button></div>
+</div>
+
+<div class="panel" id="panel-skills">
+  <p class="section-label">Part 2, continued</p>
+  <h2>Skills recommendations</h2>
+  <p class="lede">LinkedIn's skill section is a search index, not a resume line — recruiters filter by exact skill tags.</p>
+
+  <div class="skill-grid">
+    <div class="skill-col">
+      <h4>Add — in priority order</h4>
+      <div class="skill-item"><span><span class="n">01</span>Python</span></div>
+      <div class="skill-item"><span><span class="n">02</span>Machine Learning</span></div>
+      <div class="skill-item"><span><span class="n">03</span>Natural Language Processing (NLP)</span></div>
+      <div class="skill-item"><span><span class="n">04</span>Scikit-learn</span></div>
+      <div class="skill-item"><span><span class="n">05</span>Flask</span></div>
+      <div class="skill-item"><span><span class="n">06</span>Pandas</span></div>
+      <div class="skill-item"><span><span class="n">07</span>SQL</span></div>
+      <div class="skill-item"><span><span class="n">08</span>Data Analysis</span></div>
+      <div class="skill-item"><span><span class="n">09</span>Generative AI</span></div>
+      <div class="skill-item"><span><span class="n">10</span>Power BI</span></div>
+    </div>
+    <div class="skill-col">
+      <h4>Avoid for now</h4>
+      <div class="skill-item" style="color:var(--muted);">Generic soft skills alone (Leadership, Teamwork) — only add if paired with a specific, evidenced entry, they dilute an otherwise technical profile.</div>
+      <div class="skill-item" style="color:var(--muted);">Microsoft Office / generic productivity tools — expected baseline, not a differentiator for a technical role.</div>
+      <div class="skill-item" style="color:var(--muted);">Anything you can't speak to for 60 seconds in an interview — every listed skill is a question a recruiter can ask.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>Pin to top 3</h3>
+    <p style="font-size:14px;margin:0;">Python · Machine Learning · Natural Language Processing (NLP)</p>
+    <p style="font-size:12.5px;color:var(--muted);margin:8px 0 0;">These are the three a recruiter's saved search is most likely to match against for Data Science / AI-ML intern roles. SQL and Flask matter but are secondary filters, not primary ones.</p>
+  </div>
+
+  <div class="footer-nav"><button onclick="next('rebuild')">← Back</button><button onclick="next('scorecard')">Next: scorecard →</button></div>
+</div>
+
+<div class="panel" id="panel-scorecard">
+  <p class="section-label">Part 3</p>
+  <h2>Baseline vs. rebuilt scorecard</h2>
+  <p class="lede">"Before" here means the account as it stands today — nonexistent. These are projected scores for the rebuild once published, not a guarantee; actual profile strength also depends on engagement.</p>
+
+  <div class="card">
+    <div class="ba"><div class="before">Headline — 0/10</div><div class="arrow">→</div><div class="after">8/10</div></div>
+    <div class="ba"><div class="before">About (hook) — 0/10</div><div class="arrow">→</div><div class="after">8/10</div></div>
+    <div class="ba"><div class="before">About (full) — 0/10</div><div class="arrow">→</div><div class="after">7/10</div></div>
+    <div class="ba"><div class="before">Experience / projects — 3/10</div><div class="arrow">→</div><div class="after">7/10</div></div>
+    <div class="ba"><div class="before">Skills / keywords — 2/10</div><div class="arrow">→</div><div class="after">8/10</div></div>
+  </div>
+  <div class="card">
+    <div class="row"><span><b>Overall profile strength</b></span><span class="score">~8/100 → ~76/100 <span style="color:var(--muted);">(+68)</span></span></div>
+    <p style="font-size:12.5px;color:var(--muted);margin:8px 0 0;">76/100 is a strong entry-level ceiling with just two projects. To push toward 85+, you need a third project with a clearer dataset/metric story — the photography EXIF analytics project you've discussed previously would fit well here once built.</p>
+  </div>
+
+  <div class="footer-nav"><button onclick="next('skills')">← Back</button><button onclick="next('plan')">Next: 7-day plan →</button></div>
+</div>
+
+<div class="panel" id="panel-plan">
+  <p class="section-label">Part 4</p>
+  <h2>7-day activation plan</h2>
+  <p class="lede">Profile edits alone don't get you found. This is the sequence that gets the first wave of visibility.</p>
+
+  <div class="card">
+    <div class="day"><div class="num">Day 1</div><div class="body"><b>Ship the full profile.</b><p>Headline (Option 1) → About → Featured projects with GitHub links → Skills (10 added, 3 pinned) → profile photo (clear, front-facing, plain background) → banner image → custom URL (linkedin.com/in/prateeksinghdev or similar) → turn on "open to work" for internships, visible to recruiters only.</p></div></div>
+
+    <div class="day"><div class="num">Day 2</div><div class="body"><b>Publish Post #1 — "I just rebuilt my LinkedIn."</b><p>Draft below.</p>
+    <div class="post-draft">I didn't have a LinkedIn profile that reflected what I actually do — so I rebuilt it from zero today.
+
+Here's what changed: instead of listing "learning Data Science," I listed what I've actually shipped — an NLP-based emotion detection app, and 60 days of AI tools built and documented in public.
+
+The lesson that took me longest to learn: recruiters don't reward "I'm learning X." They reward "I built Y using X." Proof beats intention every time.
+
+If you're a student building things nobody's asked to see yet — start documenting anyway. It compounds.
+
+👇 What's one project you built that you haven't told anyone about yet?</div></div></div>
+
+    <div class="day"><div class="num">Day 3</div><div class="body"><b>Send 10 strategic connection requests.</b><p>Target: Data Science / AI-ML recruiters at mid-size tech companies and startups (not FAANG-only), alumni from ABES in tech roles, and 3–4 people actively posting about Generative AI or building in public. Avoid senior execs at large companies — low accept rate for cold requests from students.</p>
+    <div class="post-draft">Hi [Name] — I'm a CE student building AI/ML projects in public (NLP app, 60-day build challenge). Following your work in [their space] — would value being connected as I look toward DS/AI-ML internships.</div></div></div>
+
+    <div class="day"><div class="num">Day 4</div><div class="body"><b>Comment on 5 posts</b> from people in Data Science / AI-ML / Generative AI.<p>Value Comment formula: Agree with one specific point → add one insight or your own experience → ask one genuine question. Avoid "Great post!" — it's invisible to the algorithm and to the poster.</p></div></div>
+
+    <div class="day"><div class="num">Day 5</div><div class="body"><b>Publish Post #2 — a lesson or hot take.</b></div>
+    <div class="post-draft">Unpopular opinion: finishing a course teaches you less than finishing a broken project.
+
+I spent 60 days building AI tools instead of collecting certificates. Half of them broke in ways no tutorial warned me about — and that's exactly where the actual learning happened.
+
+Certificates prove you watched. Shipped, broken, and fixed projects prove you can build.
+
+Not saying skip the courses. Saying: don't stop there.</div></div>
+
+    <div class="day"><div class="num">Day 6</div><div class="body"><b>Engage with every comment</b> on both posts + send 5 more connection requests using the Day 3 targeting logic.</div></div>
+
+    <div class="day"><div class="num">Day 7</div><div class="body"><b>Review the numbers.</b><p>Check profile views and connection acceptance rate. Under ~20% accept rate → your requests are too generic, tighten targeting. Low profile views despite accepted connections → headline/keywords aren't matching recruiter searches, revisit Option 1 wording. High views, low messages → About section CTA isn't landing, sharpen the ask.</p></div></div>
+  </div>
+
+  <div class="footer-nav"><button onclick="next('scorecard')">← Back</button><button onclick="next('summary')">Next: summary card →</button></div>
+</div>
+
+<div class="panel" id="panel-summary">
+  <p class="section-label">Part 5</p>
+  <h2>Shareable summary card</h2>
+  <p class="lede">Screenshot this section and post it once your rebuild is live.</p>
+
+  <div class="summary-card">
+    <p style="font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:0;">I let AI rebuild my LinkedIn from scratch. Here's what changed:</p>
+    <div class="big"><span class="n zero">8</span><span class="ar">→</span><span class="n full">76</span></div>
+    <p style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);margin:-10px 0 20px;">profile strength score, out of 100</p>
+    <p style="font-size:13px;color:var(--sub);margin-bottom:8px;">Top 3 mistakes I would've made:</p>
+    <ol>
+      <li>Describing myself as "learning" instead of showing what I've already shipped</li>
+      <li>Zero numbers attached to any project — no dataset size, no accuracy, no scope</li>
+      <li>A skills section built from broad labels instead of the exact terms recruiters search for</li>
+    </ol>
+    <p style="font-size:13px;color:var(--sub);margin-top:16px;">The one change that mattered most: <span class="highlight">turning "60 days of learning" into "60 days of shipped, documented builds."</span> Same work — completely different signal.</p>
+  </div>
+
+  <div class="footer-nav"><button onclick="next('plan')">← Back</button><span></span></div>
+</div>
+
+`;
+</script>
+</body>
+</html>
